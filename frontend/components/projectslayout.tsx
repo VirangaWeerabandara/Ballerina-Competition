@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, ReactNode } from 'react';
-import { Menu, X, Home, Users, Settings, BarChart3, Bell, Search, User, LucideIcon, CirclePlus, Folders, Store, MessagesSquare } from 'lucide-react';
+import { Menu, X, Search, User, LucideIcon, CirclePlus, Folders, Store, MessagesSquare } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
@@ -12,9 +12,10 @@ interface NavigationItem {
 
 interface LayoutProps {
   children?: ReactNode;
+  onCreateNewClick: () => void;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children }) => {
+const ProjectsLayout: React.FC<LayoutProps> = ({ children, onCreateNewClick }) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
   const navigation: NavigationItem[] = [
@@ -125,7 +126,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 </div>
                 
                 {/* create new button */}
-                <button className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-400 transition-colors">
+                <button className="flex items-center px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-400 transition-colors"
+                  onClick={onCreateNewClick}
+                >
                   <div className="flex items-center">
                     <span className="text-sm font-medium px-2">Create New</span>
                     <CirclePlus className="w-4 h-4" />
@@ -180,4 +183,4 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   );
 };
 
-export default Layout;
+export default ProjectsLayout;
