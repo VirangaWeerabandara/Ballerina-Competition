@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, ReactNode } from 'react';
-import { Menu, X, Search, User, LucideIcon, CirclePlus, Folders, Store, MessagesSquare } from 'lucide-react';
+import { Menu, X, Search, User, LucideIcon, CirclePlus, Folders, Store, MessagesSquare, Icon, LogOut } from 'lucide-react';
 
 interface NavigationItem {
   name: string;
@@ -18,6 +18,11 @@ interface LayoutProps {
 const ProjectsLayout: React.FC<LayoutProps> = ({ children, onCreateNewClick }) => {
   const [sidebarOpen, setSidebarOpen] = useState<boolean>(false);
 
+  const handleSignOut = () => {
+    // Handle sign out logic here
+    console.log("User signed out");
+  };
+
   const navigation: NavigationItem[] = [
     { name: 'Projects', href: '/projects', icon: Folders, current: true },
     { name: 'Marketplace', href: '/', icon: Store, current: false },
@@ -29,7 +34,7 @@ const ProjectsLayout: React.FC<LayoutProps> = ({ children, onCreateNewClick }) =
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 z-40 bg-gray-600 bg-opacity-75 lg:hidden"
+          className="fixed inset-0 z-40 bg-black/75 backdrop-blur-lg transition-opacity lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
@@ -78,15 +83,22 @@ const ProjectsLayout: React.FC<LayoutProps> = ({ children, onCreateNewClick }) =
 
           {/* Sidebar footer */}
           <div className="p-4 border-t border-gray-200">
-            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-gray-50 cursor-pointer">
-              <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
-                <User className="w-4 h-4 text-gray-600" />
+            <button 
+              onClick={()=>{}}
+              className="flex items-center justify-between p-2 rounded-lg hover:bg-gray-50 cursor-pointer w-full">
+              
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center">
+                  <User className="w-4 h-4 text-gray-600" />
+                </div>
+                <div className="flex flex-col text-left">
+                  <p className="text-sm font-medium text-gray-900">John Doe</p>
+                  <p className="text-xs text-gray-500 truncate">john@example.com</p>
+                </div>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">John Doe</p>
-                <p className="text-xs text-gray-500 truncate">john@example.com</p>
-              </div>
-            </div>
+
+              <LogOut onClick={handleSignOut} className="w-5 h-5 text-gray-400 hover:text-orange-500" />
+            </button>
           </div>
         </div>
       </div>
@@ -120,7 +132,7 @@ const ProjectsLayout: React.FC<LayoutProps> = ({ children, onCreateNewClick }) =
                     <input
                       type="text"
                       placeholder="Search..."
-                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm"
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 text-sm"
                     />
                   </div>
                 </div>
