@@ -15,13 +15,28 @@ CREATE TABLE projects (
     project_id VARCHAR(255) PRIMARY KEY,
     user_id VARCHAR(255) NOT NULL,
     title VARCHAR(255) NOT NULL,
-    project_type ENUM('RESTApi', 'GraphQL', 'WebSocket') NOT NULL,
+    project_type VARCHAR(50) CHECK (project_type IN ('RESTApi', 'GraphQL', 'WebSocket')) NOT NULL,
     is_shared BOOLEAN DEFAULT FALSE,
-    block_layout JSON,
+    block_layout JSONB,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- Function to update the updated_at timestamp
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = CURRENT_TIMESTAMP;
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Trigger to automatically update updated_at on projects table
+CREATE TRIGGER update_projects_updated_at
+    BEFORE UPDATE ON projects
+    FOR EACH ROW
+    EXECUTE FUNCTION update_updated_at_column();
 
 -- Comments table
 CREATE TABLE comments (

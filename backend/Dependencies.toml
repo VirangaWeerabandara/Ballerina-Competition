@@ -139,7 +139,7 @@ modules = [
 ]
 
 [[package]]
-org = "umidu"
+org = "oneblok"
 name = "backend"
 version = "0.1.0"
 dependencies = [
@@ -150,9 +150,9 @@ dependencies = [
 	{org = "ballerinax", name = "postgresql"}
 ]
 modules = [
-	{org = "umidu", packageName = "backend", moduleName = "backend"},
-	{org = "umidu", packageName = "backend", moduleName = "backend.database"},
-	{org = "umidu", packageName = "backend", moduleName = "backend.models"},
-	{org = "umidu", packageName = "backend", moduleName = "backend.utils"}
+	{org = "oneblok", packageName = "backend", moduleName = "backend"},
+	{org = "oneblok", packageName = "backend", moduleName = "backend.database"},
+	{org = "oneblok", packageName = "backend", moduleName = "backend.models"},
+	{org = "oneblok", packageName = "backend", moduleName = "backend.utils"}
 ]
 
