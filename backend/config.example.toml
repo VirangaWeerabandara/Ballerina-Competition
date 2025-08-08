@@ -1,9 +1,0 @@
-dbPassword = "your_secure_password"
-jwtSecret = "your_jwt_secret_key"
-apiKey = "your_api_key"
-
-# Database configuration
-dbHost = "localhost"
-dbPort = 5432
-dbName = "your_database_name"
-dbUser = "your_username"

@@ -1,18 +1,13 @@
 [package]
 org = "umidu"
-name = "backedn"
+name = "backend"
 version = "0.1.0"
 distribution = "2201.12.7"
 
 [build-options]
 observabilityIncluded = true
 
-[[dependency]]
-org = "ballerinax"
-name = "postgresql"
-version = "1.13.0"
-
-[[dependency]]
-org = "ballerinax"
-name = "postgresql.driver"
-version = "1.6.0"
+[[platform.java21.dependency]]
+groupId = "org.postgresql"
+artifactId = "postgresql"
+version = "42.7.2"
