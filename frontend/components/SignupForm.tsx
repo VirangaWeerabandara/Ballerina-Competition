@@ -1,4 +1,6 @@
 import React from 'react';
+import { AppleIcon } from 'lucide-react';
+import GoogleIcon from './icons/GoogleIcon';
 
 export default function SignupForm() {
   return (
@@ -38,12 +40,7 @@ export default function SignupForm() {
           <div className="my-4 text-center text-gray-400 text-xs">or</div>
           <div className="flex flex-col space-y-2">
             <button className="flex items-center justify-center space-x-2 border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-100 transition">
-              <svg className="h-4 w-4" viewBox="0 0 533.5 544.3" xmlns="http://www.w3.org/2000/svg" fill="none">
-                <path fill="#4285F4" d="M533.5 278.4c0-17.4-1.6-34.1-4.7-50.4H272v95.5h146.9c-6.3 34-25.4 62.8-54.3 82v68h87.7c51.3-47.3 80.2-116.7 80.2-195.1z"/>
-                <path fill="#34A853" d="M272 544.3c73.7 0 135.6-24.4 180.8-66.1l-87.7-68c-24.3 16.3-55.4 25.9-93.1 25.9-71.5 0-132-48.3-153.6-113.1H28.1v70.9C73.1 485.7 165.4 544.3 272 544.3z"/>
-                <path fill="#FBBC05" d="M118.4 323.9c-5.4-16.3-8.5-33.7-8.5-51.5s3.1-35.2 8.5-51.5v-70.9H28.1c-17.7 34.9-28 74.1-28 116.4s10.3 81.5 28 116.4l90.3-70.9z"/>
-                <path fill="#EA4335" d="M272 107.7c39.9 0 75.7 13.7 103.9 40.7l77.9-77.9C405.7 24.6 344 0 272 0 165.4 0 73.1 58.6 28.1 147.4l90.3 70.9c21.6-64.8 82.1-113.1 153.6-113.1z"/>
-              </svg>
+              <GoogleIcon className="h-4 w-4" />
               <span>Sign in with Google</span>
             </button>
             <button className="flex items-center justify-center space-x-2 border border-gray-300 rounded-md py-2 text-sm hover:bg-gray-100 transition">
