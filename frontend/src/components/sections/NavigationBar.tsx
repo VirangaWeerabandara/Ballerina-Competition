@@ -83,10 +83,10 @@ const NavigationBar = () => {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
             <SignedIn>
-              <SignOutButton />
+              <SignOutButton className="bg-primary hover:bg-primary/90 text-primary-foreground" />
             </SignedIn>
             <SignedOut>
-              <SignInButton />
+              <SignInButton className="bg-primary hover:bg-primary/90 text-primary-foreground" />
             </SignedOut>
             <Button
               variant="ghost"
