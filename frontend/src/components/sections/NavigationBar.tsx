@@ -2,6 +2,12 @@ import { Button } from "@/components/ui/button";
 import { useState, useEffect } from "react";
 import { Menu, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignOutButton,
+} from "@asgardeo/react";
 
 const NavigationBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -76,6 +82,12 @@ const NavigationBar = () => {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center space-x-4">
+            <SignedIn>
+              <SignOutButton />
+            </SignedIn>
+            <SignedOut>
+              <SignInButton />
+            </SignedOut>
             <Button
               variant="ghost"
               onClick={handleSignIn}
