@@ -8,7 +8,7 @@ import { Mail, MessageSquare, Send } from "lucide-react";
 
 const ContactSection = () => {
   return (
-    <section className="py-24 relative">
+    <section id="contact" className="py-24 relative">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16">
           <Badge variant="secondary" className="mb-6 px-4 py-2">
@@ -19,7 +19,8 @@ const ContactSection = () => {
             Ready to <span className="text-primary">Get Started?</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Have questions or need help? Contact our team and we'll get back to you within 24 hours.
+            Have questions or need help? Contact our team and we'll get back to
+            you within 24 hours.
           </p>
         </div>
 
@@ -36,50 +37,50 @@ const ContactSection = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="firstName">First Name</Label>
-                  <Input 
-                    id="firstName" 
-                    placeholder="John" 
+                  <Input
+                    id="firstName"
+                    placeholder="John"
                     className="border-2 focus:border-primary"
                   />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="lastName">Last Name</Label>
-                  <Input 
-                    id="lastName" 
-                    placeholder="Doe" 
+                  <Input
+                    id="lastName"
+                    placeholder="Doe"
                     className="border-2 focus:border-primary"
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input 
-                  id="email" 
-                  type="email" 
-                  placeholder="john@example.com" 
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@example.com"
                   className="border-2 focus:border-primary"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="company">Company (Optional)</Label>
-                <Input 
-                  id="company" 
-                  placeholder="Your Company" 
+                <Input
+                  id="company"
+                  placeholder="Your Company"
                   className="border-2 focus:border-primary"
                 />
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="message">Message</Label>
-                <Textarea 
-                  id="message" 
-                  placeholder="Tell us about your project..." 
+                <Textarea
+                  id="message"
+                  placeholder="Tell us about your project..."
                   className="min-h-[120px] border-2 focus:border-primary resize-none"
                 />
               </div>
-              
+
               <Button className="w-full text-lg py-6 animate-glow">
                 <Send className="w-5 h-5 mr-2" />
                 Send Message
@@ -91,27 +92,36 @@ const ContactSection = () => {
           <div className="space-y-8">
             <Card className="border-2 border-primary/20">
               <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Why Choose OneBlock?</h3>
+                <h3 className="text-2xl font-bold mb-6">
+                  Why Choose OneBlock?
+                </h3>
                 <div className="space-y-4">
                   <div className="flex items-start space-x-4">
                     <div className="w-2 h-2 bg-primary rounded-full mt-3" />
                     <div>
                       <h4 className="font-semibold mb-1">Lightning Fast</h4>
-                      <p className="text-muted-foreground">Deploy and test your services in seconds, not hours.</p>
+                      <p className="text-muted-foreground">
+                        Deploy and test your services in seconds, not hours.
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
                     <div className="w-2 h-2 bg-primary rounded-full mt-3" />
                     <div>
                       <h4 className="font-semibold mb-1">Developer Friendly</h4>
-                      <p className="text-muted-foreground">Intuitive interface designed by developers, for developers.</p>
+                      <p className="text-muted-foreground">
+                        Intuitive interface designed by developers, for
+                        developers.
+                      </p>
                     </div>
                   </div>
                   <div className="flex items-start space-x-4">
                     <div className="w-2 h-2 bg-primary rounded-full mt-3" />
                     <div>
                       <h4 className="font-semibold mb-1">Enterprise Ready</h4>
-                      <p className="text-muted-foreground">Scalable architecture for teams of all sizes.</p>
+                      <p className="text-muted-foreground">
+                        Scalable architecture for teams of all sizes.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -122,7 +132,8 @@ const ContactSection = () => {
               <CardContent className="p-8">
                 <h3 className="text-2xl font-bold mb-6">Enterprise Support</h3>
                 <p className="text-muted-foreground mb-6">
-                  Need dedicated support for your team? Our enterprise plan includes:
+                  Need dedicated support for your team? Our enterprise plan
+                  includes:
                 </p>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-3">

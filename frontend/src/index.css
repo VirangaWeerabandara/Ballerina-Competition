@@ -8,7 +8,59 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Modern API Platform Theme */
+    /* Light Mode API Platform Theme */
+    --background: 0 0% 98%;
+    --foreground: 220 26% 14%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 220 26% 14%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 220 26% 14%;
+
+    --primary: 24 88% 58%;
+    --primary-foreground: 0 0% 98%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 220 26% 14%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 24 88% 58%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 24 88% 58%;
+
+    --radius: 0.5rem;
+
+    /* Custom design tokens for light mode */
+    --gradient-primary: linear-gradient(
+      135deg,
+      hsl(24 88% 58%),
+      hsl(16 82% 52%)
+    );
+    --gradient-bg: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 96%));
+    --glow: 0 0 40px hsl(24 88% 58% / 0.2);
+    --shadow-elegant: 0 10px 30px -10px hsl(0 0% 0% / 0.1);
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 220 26% 14%;
+    --sidebar-primary: 24 88% 58%;
+    --sidebar-primary-foreground: 0 0% 98%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 220 26% 14%;
+    --sidebar-border: 0 0% 90%;
+    --sidebar-ring: 24 88% 58%;
+  }
+
+  .dark {
+    /* Dark mode for API Platform */
     --background: 220 26% 5%;
     --foreground: 0 0% 98%;
 
@@ -37,10 +89,7 @@ All colors MUST be HSL.
     --input: 224 20% 18%;
     --ring: 24 88% 58%;
 
-    --radius: 0.5rem;
-
-    /* Custom design tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(24 88% 58%), hsl(16 82% 52%));
+    /* Custom design tokens for dark mode */
     --gradient-bg: linear-gradient(135deg, hsl(220 26% 5%), hsl(224 20% 8%));
     --glow: 0 0 40px hsl(24 88% 58% / 0.3);
     --shadow-elegant: 0 10px 30px -10px hsl(224 20% 8% / 0.5);
@@ -54,45 +103,6 @@ All colors MUST be HSL.
     --sidebar-border: 224 20% 18%;
     --sidebar-ring: 24 88% 58%;
   }
-
-  .dark {
-    /* Light mode for API Platform */
-    --background: 0 0% 98%;
-    --foreground: 220 26% 14%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 220 26% 14%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 220 26% 14%;
-
-    --primary: 24 88% 58%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 220 26% 14%;
-
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
-
-    --accent: 0 0% 96%;
-    --accent-foreground: 24 88% 58%;
-
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 24 88% 58%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
 }
 
 @layer base {
@@ -102,5 +112,36 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px);
+    }
+    50% {
+      transform: translateY(-20px);
+    }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes slide-up {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.8s ease-out;
   }
 }
