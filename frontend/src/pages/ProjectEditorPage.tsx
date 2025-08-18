@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  useAsgardeo,
+} from "@asgardeo/react";
 import { Card, CardContent } from "@/components/ui/card";
 import FlowBuilder from "@/components/flow/FlowBuilder";
 
@@ -977,22 +982,85 @@ const ProjectEditorPage = () => {
     if (isExample && projectId && exampleProjectData[projectId]) {
       setProject(exampleProjectData[projectId]);
     } else if (projectId && projectId !== "new") {
-      // Simulate loading project data
-      const mockProject: ProjectData = {
-        id: projectId,
-        name: "E-commerce API",
-        type: "rest-api",
-        template: "basic-crud",
+      // Fetch project from backend
+      const fetchProject = async () => {
+        try {
+          const BACKEND_BASE_URL = import.meta.env
+            .VITE_BACKEND_BASE_URL as string;
+          const res = await fetch(
+            `${BACKEND_BASE_URL}/projects/byId?projectId=${encodeURIComponent(
+              projectId
+            )}`
+          );
+          const data = await res.json();
+          if (data && data.project) {
+            const p = data.project;
+            setProject({
+              id: p.projectId,
+              name: p.title,
+              type:
+                p.projectType === "RESTApi"
+                  ? "rest-api"
+                  : p.projectType === "GraphQL"
+                  ? "graphql"
+                  : "websocket",
+              template: p.blockLayout?.template || "",
+              nodes: p.blockLayout?.nodes || [],
+              edges: p.blockLayout?.edges || [],
+            });
+          }
+        } catch (e) {
+          // fallback: show empty project
+          setProject({
+            id: projectId,
+            name: "Untitled API Project",
+            type: "rest-api",
+            template: "basic-crud",
+            nodes: [],
+            edges: [],
+          });
+        }
       };
-      setProject(mockProject);
+      fetchProject();
     }
   }, [projectId, location.search]);
 
-  const handleSave = (projectData: any) => {
+  const { user } = useAsgardeo();
+  const handleSave = async (projectData: any) => {
     console.log("Saving project:", projectData);
-    // Here you would typically save to your backend
-    // For now, we'll just save to localStorage
-    localStorage.setItem(`project_${project.id}`, JSON.stringify(projectData));
+    // Save to backend
+    try {
+      const userEmail = user?.email || "";
+      const payload = {
+        projectId: project.id,
+        email: userEmail,
+        title: projectData.name || project.name,
+        projectType: "RESTApi", // You may want to map this from project.type
+        isShared: false, // You may want to allow sharing from the UI
+        blockLayout: {
+          description: projectData.description || "",
+          endpoints: (projectData.nodes || []).map(
+            (n: any) => n.data?.label || n.id
+          ),
+          nodes: projectData.nodes,
+          edges: projectData.edges,
+        },
+      };
+      const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL as string;
+      const res = await fetch(`${BACKEND_BASE_URL}/projects/update`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      if (res.ok) {
+        console.log("Project saved to backend");
+      } else {
+        const err = await res.json();
+        console.error("Failed to save project:", err.error || res.statusText);
+      }
+    } catch (e) {
+      console.error("Error saving project:", e);
+    }
   };
 
   const handleBack = () => {
