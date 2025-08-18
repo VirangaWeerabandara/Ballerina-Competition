@@ -414,9 +414,18 @@ const ApiBuilder: React.FC<ApiBuilderProps> = ({
           <div className="bg-card border-2 border-primary rounded-lg p-3 shadow-lg opacity-90">
             <div className="flex items-center space-x-2">
               <div
-                className={`w-8 h-8 rounded ${draggedComponent.color} text-white flex items-center justify-center`}
+                className={`w-8 h-8 rounded bg-white border-2 ${draggedComponent.color} flex items-center justify-center`}
               >
                 {/* Icon would go here */}
+                {draggedComponent.icon &&
+                  React.createElement(
+                    require("lucide-react")[draggedComponent.icon] ||
+                      require("lucide-react").Database,
+                    {
+                      className:
+                        "w-5 h-5 text-neutral-800 dark:text-neutral-300",
+                    }
+                  )}
               </div>
               <span className="font-medium">{draggedComponent.name}</span>
             </div>

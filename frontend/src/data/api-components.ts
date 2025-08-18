@@ -9,7 +9,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle HTTP GET requests",
     category: "Endpoints",
     icon: "Download",
-    color: "bg-blue-500",
+    color: "bg-blue-400",
     inputs: 0,
     outputs: 1,
     config: {
@@ -24,7 +24,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle HTTP POST requests",
     category: "Endpoints",
     icon: "Upload",
-    color: "bg-green-500",
+    color: "bg-green-400",
     inputs: 0,
     outputs: 1,
     config: {
@@ -39,7 +39,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle HTTP PUT requests",
     category: "Endpoints",
     icon: "RefreshCw",
-    color: "bg-orange-500",
+    color: "bg-orange-400",
     inputs: 0,
     outputs: 1,
     config: {
@@ -54,7 +54,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle HTTP DELETE requests",
     category: "Endpoints",
     icon: "Trash2",
-    color: "bg-red-500",
+    color: "bg-red-400",
     inputs: 0,
     outputs: 1,
     config: {
@@ -69,7 +69,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle HTTP PATCH requests",
     category: "Endpoints",
     icon: "Edit",
-    color: "bg-purple-500",
+    color: "bg-purple-400",
     inputs: 0,
     outputs: 1,
     config: {
@@ -86,7 +86,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Validate user authentication",
     category: "Middleware",
     icon: "Shield",
-    color: "bg-indigo-500",
+    color: "bg-indigo-400",
     inputs: 1,
     outputs: 2, // success, failure
     config: {
@@ -101,7 +101,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Handle Cross-Origin Resource Sharing",
     category: "Middleware",
     icon: "Globe",
-    color: "bg-cyan-500",
+    color: "bg-cyan-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -116,7 +116,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Limit request rate per user",
     category: "Middleware",
     icon: "Timer",
-    color: "bg-yellow-500",
+    color: "bg-yellow-400",
     inputs: 1,
     outputs: 2, // allowed, blocked
     config: {
@@ -131,7 +131,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Log incoming requests",
     category: "Middleware",
     icon: "FileText",
-    color: "bg-gray-500",
+    color: "bg-gray-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -148,7 +148,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Store and retrieve data",
     category: "Database",
     icon: "Database",
-    color: "bg-emerald-500",
+    color: "bg-emerald-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -163,7 +163,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Cache frequently accessed data",
     category: "Database",
     icon: "Zap",
-    color: "bg-pink-500",
+    color: "bg-pink-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -180,7 +180,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Call external REST API",
     category: "External",
     icon: "ExternalLink",
-    color: "bg-teal-500",
+    color: "bg-teal-400",
     inputs: 1,
     outputs: 2, // success, error
     config: {
@@ -195,7 +195,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Send webhook notifications",
     category: "External",
     icon: "Webhook",
-    color: "bg-violet-500",
+    color: "bg-violet-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -212,7 +212,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Validate request data",
     category: "Processing",
     icon: "CheckCircle",
-    color: "bg-lime-500",
+    color: "bg-lime-400",
     inputs: 1,
     outputs: 2, // valid, invalid
     config: {
@@ -227,7 +227,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Transform data format",
     category: "Processing",
     icon: "RotateCcw",
-    color: "bg-amber-500",
+    color: "bg-amber-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -243,7 +243,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Store and manage files",
     category: "Storage",
     icon: "HardDrive",
-    color: "bg-stone-500",
+    color: "bg-stone-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -260,7 +260,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Send email notifications",
     category: "Communication",
     icon: "Mail",
-    color: "bg-rose-500",
+    color: "bg-rose-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -275,7 +275,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Send push notifications",
     category: "Communication",
     icon: "Bell",
-    color: "bg-fuchsia-500",
+    color: "bg-fuchsia-400",
     inputs: 1,
     outputs: 1,
     config: {
@@ -290,7 +290,7 @@ export const REST_API_COMPONENTS: APIComponent[] = [
     description: "Queue messages for processing",
     category: "Communication",
     icon: "Layers",
-    color: "bg-slate-500",
+    color: "bg-slate-400",
     inputs: 1,
     outputs: 1,
     config: {

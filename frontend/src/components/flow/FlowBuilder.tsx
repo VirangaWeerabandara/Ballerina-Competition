@@ -93,7 +93,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
     <ReactFlowProvider>
       <div className="h-screen flex flex-col bg-background">
         {/* Header */}
-        <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
+        <header className="h-16 bg-card/70 border-b border-border flex items-center justify-between px-6 backdrop-blur-md shadow-md">
           <div className="flex items-center space-x-4">
             {onBack && (
               <Button

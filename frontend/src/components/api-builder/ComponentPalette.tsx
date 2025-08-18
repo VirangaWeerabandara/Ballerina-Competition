@@ -82,9 +82,9 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
       <CardContent className="p-3">
         <div className="flex items-start space-x-3">
           <div
-            className={`w-10 h-10 rounded-lg ${component.color} text-white flex items-center justify-center flex-shrink-0 shadow-sm`}
+            className={`w-10 h-10 rounded-lg bg-white border-2 ${component.color} flex items-center justify-center flex-shrink-0 shadow-sm`}
           >
-            <IconComponent className="w-5 h-5" />
+            <IconComponent className="w-5 h-5 text-neutral-800 dark:text-neutral-300" />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="font-medium text-sm truncate mb-1">
