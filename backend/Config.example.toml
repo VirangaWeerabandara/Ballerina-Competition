@@ -1,0 +1,6 @@
+[databaseConfig]
+host = "localhost"
+port = "<<PostgreSQL_DB_PORT>>"
+username = "<<PostgreSQL_DB_USERNAME>>"
+password = "<<PostgreSQL_DB_PASSWORD>>"
+database = "<<PostgreSQL_DB_NAME>>"

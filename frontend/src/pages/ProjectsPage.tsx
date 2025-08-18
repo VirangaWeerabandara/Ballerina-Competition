@@ -1,17 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import {
-  Plus,
-  Search,
-  Calendar,
-  ExternalLink,
-  Menu,
-  User,
-  LogOut,
-} from "lucide-react";
+import { Plus, Search, Calendar, ExternalLink } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   SignedIn,
@@ -32,12 +24,21 @@ interface Project {
   endpoints: number;
 }
 
+const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL as string;
+
 const ProjectsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"my" | "examples">("my");
+  const [activeTab, setActiveTab] = useState<"my" | "examples" | "community">(
+    "my"
+  );
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [communityProjects, setCommunityProjects] = useState<Project[]>([]);
+
   const navigate = useNavigate();
-  const { signOut } = useAsgardeo();
+  const { signOut, user } = useAsgardeo();
 
   // Example projects (different from user's projects)
   const exampleProjects: Project[] = [
@@ -94,36 +95,81 @@ const ProjectsPage = () => {
     },
   ];
 
-  // User's own projects (mock)
-  const mockProjects: Project[] = [
-    {
-      id: "1",
-      title: "Inventory Tracker",
-      description: "API for managing warehouse inventory and stock levels.",
-      category: "Logistics",
-      date: "2 hours ago",
-      endpoints: 14,
-    },
-    {
-      id: "2",
-      title: "Fitness App Backend",
-      description: "Workout plans, user progress, and nutrition tracking.",
-      category: "Health",
-      date: "1 day ago",
-      endpoints: 9,
-    },
-    {
-      id: "3",
-      title: "Event Ticketing API",
-      description:
-        "API for event creation, ticket sales, and attendee management.",
-      category: "Events",
-      date: "3 days ago",
-      endpoints: 11,
-    },
-  ];
+  // Fetch projects for the logged-in user and community projects
+  useEffect(() => {
+    const fetchProjects = async () => {
+      if (!user?.email) return;
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(
+          `${BACKEND_BASE_URL}/projects/byEmail?email=${encodeURIComponent(
+            user.email
+          )}`
+        );
+        const data = await res.json();
+        if (data.projects) {
+          setProjects(
+            data.projects.map((p: any) => ({
+              id: p.projectId,
+              title: p.title,
+              description: p.blockLayout?.description || "No description",
+              category: p.projectType,
+              date: "Recently",
+              endpoints: Array.isArray(p.blockLayout?.endpoints)
+                ? p.blockLayout.endpoints.length
+                : 0,
+            }))
+          );
+        } else {
+          setProjects([]);
+        }
+      } catch (err) {
+        setError("Failed to load projects.");
+        setProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const filteredProjects = mockProjects.filter(
+    const fetchCommunityProjects = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const res = await fetch(`${BACKEND_BASE_URL}/projects/shared`);
+        const data = await res.json();
+        if (Array.isArray(data)) {
+          setCommunityProjects(
+            data.map((p: any) => ({
+              id: p.projectId,
+              title: p.title,
+              description: p.blockLayout?.description || "No description",
+              category: p.projectType,
+              date: "Shared",
+              endpoints: Array.isArray(p.blockLayout?.endpoints)
+                ? p.blockLayout.endpoints.length
+                : 0,
+            }))
+          );
+        } else {
+          setCommunityProjects([]);
+        }
+      } catch (err) {
+        setError("Failed to load community projects.");
+        setCommunityProjects([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (activeTab === "my" && user?.email) {
+      fetchProjects();
+    } else if (activeTab === "community") {
+      fetchCommunityProjects();
+    }
+  }, [activeTab, user?.email]);
+
+  const filteredProjects = projects.filter(
     (project) =>
       project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -132,22 +178,6 @@ const ProjectsPage = () => {
 
   const handleCreateProject = () => {
     setIsCreateModalOpen(true);
-  };
-
-  const handleProjectSubmit = (data: {
-    name: string;
-    type: ProjectType;
-    template: string;
-  }) => {
-    // Create new project and navigate to editor
-    const newProjectId = `project_${Date.now()}`;
-    console.log("Creating project:", data);
-    navigate(
-      `/projects/editor/${newProjectId}?name=${encodeURIComponent(
-        data.name
-      )}&type=${data.type}&template=${data.template}`
-    );
-    setIsCreateModalOpen(false);
   };
 
   const handleProjectClick = (projectId: string) => {
@@ -159,6 +189,66 @@ const ProjectsPage = () => {
   const handleExampleClick = (example: Project) => {
     // Pass example=true and exampleId for the editor to load the example
     navigate(`/projects/editor/${example.id}?example=true`);
+  };
+
+  const handleProjectSubmit = async (data: {
+    name: string;
+    type: ProjectType;
+    template: string;
+    isShared: boolean;
+  }) => {
+    if (!user?.email) return;
+    setLoading(true);
+    setError(null);
+
+    // Map frontend type to backend enum
+    let projectType = "RESTApi";
+    if (data.type === "graphql") projectType = "GraphQL";
+    if (data.type === "websocket") projectType = "WebSocket";
+
+    const newProject = {
+      projectId: `project_${Date.now()}`,
+      email: user.email,
+      title: data.name,
+      projectType,
+      isShared: data.isShared,
+      blockLayout: {
+        description: "",
+        endpoints: [],
+        template: data.template,
+      },
+    };
+
+    try {
+      const res = await fetch(`${BACKEND_BASE_URL}/projects/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newProject),
+      });
+      const result = await res.json();
+      if (res.ok) {
+        setIsCreateModalOpen(false);
+        // Optionally, refresh projects list
+        setProjects((prev) => [
+          ...prev,
+          {
+            id: newProject.projectId,
+            title: newProject.title,
+            description: "",
+            category: projectType,
+            date: "Recently",
+            endpoints: 0,
+          },
+        ]);
+        navigate(`/projects/editor/${newProject.projectId}`);
+      } else {
+        setError(result.error || "Failed to create project.");
+      }
+    } catch (err) {
+      setError("Failed to create project.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -207,18 +297,14 @@ const ProjectsPage = () => {
 
                 {/* Absolutely centered toggle, always in the middle of the header */}
                 <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none z-10">
-                  <span
-                    className="inline-flex items-center gap-2 text-base font-semibold cursor-pointer"
-                    onClick={() =>
-                      setActiveTab(activeTab === "my" ? "examples" : "my")
-                    }
-                  >
+                  <span className="inline-flex items-center gap-2 text-base font-semibold cursor-pointer">
                     <span
                       className={
                         activeTab === "my"
                           ? "text-primary underline underline-offset-4"
                           : "text-muted-foreground hover:text-primary"
                       }
+                      onClick={() => setActiveTab("my")}
                     >
                       My Projects
                     </span>
@@ -229,8 +315,20 @@ const ProjectsPage = () => {
                           ? "text-primary underline underline-offset-4"
                           : "text-muted-foreground hover:text-primary"
                       }
+                      onClick={() => setActiveTab("examples")}
                     >
                       Examples
+                    </span>
+                    <span className="mx-2 text-muted-foreground">|</span>
+                    <span
+                      className={
+                        activeTab === "community"
+                          ? "text-primary underline underline-offset-4"
+                          : "text-muted-foreground hover:text-primary"
+                      }
+                      onClick={() => setActiveTab("community")}
+                    >
+                      Community
                     </span>
                   </span>
                 </div>
@@ -243,21 +341,47 @@ const ProjectsPage = () => {
             {/* Page Header */}
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold text-foreground mb-2">
-                  My Projects
-                </h1>
-                <p className="text-muted-foreground">
-                  Manage and monitor your API projects
-                </p>
+                {activeTab === "my" && (
+                  <>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      My Projects
+                    </h1>
+                    <p className="text-muted-foreground">
+                      Manage and monitor your API projects
+                    </p>
+                  </>
+                )}
+                {activeTab === "examples" && (
+                  <>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      Example Projects
+                    </h1>
+                    <p className="text-muted-foreground">
+                      Explore ready-made API project templates and demos
+                    </p>
+                  </>
+                )}
+                {activeTab === "community" && (
+                  <>
+                    <h1 className="text-3xl font-bold text-foreground mb-2">
+                      Community Projects
+                    </h1>
+                    <p className="text-muted-foreground">
+                      Discover and use projects shared by the community
+                    </p>
+                  </>
+                )}
               </div>
 
-              <Button
-                onClick={handleCreateProject}
-                className="bg-primary hover:bg-primary/90"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                New Project
-              </Button>
+              {activeTab === "my" && (
+                <Button
+                  onClick={handleCreateProject}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Project
+                </Button>
+              )}
             </div>
 
             {/* Tab Content */}
@@ -302,6 +426,70 @@ const ProjectsPage = () => {
                   ))}
                 </div>
               </div>
+            ) : activeTab === "community" ? (
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
+                  Community Projects
+                </h2>
+                {loading ? (
+                  <div className="text-center py-12">
+                    Loading community projects...
+                  </div>
+                ) : error ? (
+                  <div className="text-center py-12 text-red-500">{error}</div>
+                ) : (
+                  <>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {communityProjects.map((project) => (
+                        <Card
+                          key={project.id}
+                          className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
+                          onClick={() => handleProjectClick(project.id)}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                                  {project.title}
+                                </CardTitle>
+                                <Badge variant="secondary" className="mt-2">
+                                  {project.category}
+                                </Badge>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                          </CardHeader>
+                          <CardContent>
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                              {project.description}
+                            </p>
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{project.date}</span>
+                              </div>
+                              <span>{project.endpoints} endpoints</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                    {communityProjects.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                          <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">
+                          No community projects found
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          Be the first to share a project with the community!
+                        </p>
+                      </div>
+                    )}
+                  </>
+                )}
+              </div>
             ) : (
               <>
                 {/* Search Bar */}
@@ -316,69 +504,78 @@ const ProjectsPage = () => {
                   />
                 </div>
 
-                {/* Projects Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {filteredProjects.map((project) => (
-                    <Card
-                      key={project.id}
-                      className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
-                      onClick={() => handleProjectClick(project.id)}
-                    >
-                      <CardHeader className="pb-3">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                              {project.title}
-                            </CardTitle>
-                            <Badge variant="secondary" className="mt-2">
-                              {project.category}
-                            </Badge>
-                          </div>
-                          <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                        </div>
-                      </CardHeader>
+                {/* Loading/Error State */}
+                {loading ? (
+                  <div className="text-center py-12">Loading projects...</div>
+                ) : error ? (
+                  <div className="text-center py-12 text-red-500">{error}</div>
+                ) : (
+                  <>
+                    {/* Projects Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      {filteredProjects.map((project) => (
+                        <Card
+                          key={project.id}
+                          className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
+                          onClick={() => handleProjectClick(project.id)}
+                        >
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                                  {project.title}
+                                </CardTitle>
+                                <Badge variant="secondary" className="mt-2">
+                                  {project.category}
+                                </Badge>
+                              </div>
+                              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                            </div>
+                          </CardHeader>
 
-                      <CardContent>
-                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                          {project.description}
-                        </p>
+                          <CardContent>
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                              {project.description}
+                            </p>
 
-                        <div className="flex items-center justify-between text-xs text-muted-foreground">
-                          <div className="flex items-center space-x-1">
-                            <Calendar className="h-3 w-3" />
-                            <span>{project.date}</span>
-                          </div>
-                          <span>{project.endpoints} endpoints</span>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-
-                {/* Empty State */}
-                {filteredProjects.length === 0 && (
-                  <div className="text-center py-12">
-                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                      <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                            <div className="flex items-center justify-between text-xs text-muted-foreground">
+                              <div className="flex items-center space-x-1">
+                                <Calendar className="h-3 w-3" />
+                                <span>{project.date}</span>
+                              </div>
+                              <span>{project.endpoints} endpoints</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
                     </div>
-                    <h3 className="text-lg font-medium text-foreground mb-2">
-                      {searchTerm ? "No projects found" : "No projects yet"}
-                    </h3>
-                    <p className="text-muted-foreground mb-4">
-                      {searchTerm
-                        ? "Try adjusting your search terms."
-                        : "Create your first project to get started."}
-                    </p>
-                    {!searchTerm && (
-                      <Button
-                        onClick={handleCreateProject}
-                        className="bg-primary hover:bg-primary/90"
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Project
-                      </Button>
+
+                    {/* Empty State */}
+                    {filteredProjects.length === 0 && (
+                      <div className="text-center py-12">
+                        <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                          <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">
+                          {searchTerm ? "No projects found" : "No projects yet"}
+                        </h3>
+                        <p className="text-muted-foreground mb-4">
+                          {searchTerm
+                            ? "Try adjusting your search terms."
+                            : "Create your first project to get started."}
+                        </p>
+                        {!searchTerm && (
+                          <Button
+                            onClick={handleCreateProject}
+                            className="bg-primary hover:bg-primary/90"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create Project
+                          </Button>
+                        )}
+                      </div>
                     )}
-                  </div>
+                  </>
                 )}
               </>
             )}

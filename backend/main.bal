@@ -37,7 +37,7 @@ listener http:Listener httpListener = new (8080);
 
 @http:ServiceConfig {
     cors: {
-        allowOrigins: ["http://localhost:3000"],
+        allowOrigins: ["http://localhost:5173"],
         allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
         allowHeaders: ["Authorization", "Content-Type"],
         allowCredentials: true

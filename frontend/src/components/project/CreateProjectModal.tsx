@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { X, Database, Zap, MessageSquare, Globe } from "lucide-react";
+import { Switch } from "@/components/ui/switch"; // Add this if you have a Switch component
 
 export type ProjectType = "rest-api" | "graphql" | "websocket";
 
@@ -24,6 +25,7 @@ interface CreateProjectModalProps {
     name: string;
     type: ProjectType;
     template: string;
+    isShared: boolean;
   }) => void;
 }
 
@@ -35,6 +37,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   const [projectName, setProjectName] = useState("");
   const [selectedType, setSelectedType] = useState<ProjectType | null>(null);
   const [selectedTemplate, setSelectedTemplate] = useState("");
+  const [isShared, setIsShared] = useState(false);
 
   const projectTypes: ProjectTemplate[] = [
     {
@@ -139,11 +142,13 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
         name: projectName,
         type: selectedType,
         template: selectedTemplate,
+        isShared,
       });
       // Reset form
       setProjectName("");
       setSelectedType(null);
       setSelectedTemplate("");
+      setIsShared(false);
     }
   };
 
@@ -242,6 +247,16 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Shared Switch */}
+            <div className="flex items-center space-x-3 pt-2">
+              <Switch
+                id="is-shared"
+                checked={isShared}
+                onCheckedChange={setIsShared}
+              />
+              <Label htmlFor="is-shared">Public</Label>
+            </div>
 
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3 pt-6">
