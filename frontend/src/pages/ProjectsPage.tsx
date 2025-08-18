@@ -176,6 +176,13 @@ const ProjectsPage = () => {
       project.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const filteredCommunityProjects = communityProjects.filter(
+    (project) =>
+      project.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.category.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const handleCreateProject = () => {
     setIsCreateModalOpen(true);
   };
@@ -431,6 +438,17 @@ const ProjectsPage = () => {
                 <h2 className="text-xl font-semibold text-foreground mb-4">
                   Community Projects
                 </h2>
+                {/* Search Bar for Community Projects */}
+                <div className="relative mb-8">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search community projects..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 {loading ? (
                   <div className="text-center py-12">
                     Loading community projects...
@@ -440,7 +458,7 @@ const ProjectsPage = () => {
                 ) : (
                   <>
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                      {communityProjects.map((project) => (
+                      {filteredCommunityProjects.map((project) => (
                         <Card
                           key={project.id}
                           className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
@@ -474,7 +492,7 @@ const ProjectsPage = () => {
                         </Card>
                       ))}
                     </div>
-                    {communityProjects.length === 0 && (
+                    {filteredCommunityProjects.length === 0 && (
                       <div className="text-center py-12">
                         <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                           <ExternalLink className="w-8 h-8 text-muted-foreground" />
