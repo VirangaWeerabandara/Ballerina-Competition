@@ -73,23 +73,37 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
     // TODO: Implement actual simulation logic
   }, [isSimulating]);
 
+  // Make project name and isShared stateful and editable
+  const [currentName, setCurrentName] = useState(projectName);
+  const [currentIsPrivate, setCurrentIsPrivate] = useState(isPrivate);
+
+  // Sync currentName with projectName prop when it changes
+  useEffect(() => {
+    setCurrentName(projectName);
+  }, [projectName]);
+
   const handleSave = useCallback(() => {
     const projectData = {
-      name: projectName,
+      name: currentName,
       nodes: nodes,
       edges: edges,
-      isShared: !isPrivate, // isShared is true when not private
+      isShared: !currentIsPrivate, // isShared is true when not private
       timestamp: new Date().toISOString(),
     };
 
     if (onSave) {
-      onSave(projectData);
+      // Pass name and isShared as top-level fields for backend
+      onSave({
+        ...projectData,
+        name: currentName,
+        isShared: !currentIsPrivate,
+      });
     } else {
       localStorage.setItem("flow-builder-project", JSON.stringify(projectData));
       console.log("Project saved to localStorage");
     }
     toast.success("Project saved!");
-  }, [projectName, onSave, nodes, edges, isPrivate]);
+  }, [currentName, onSave, nodes, edges, currentIsPrivate]);
 
   return (
     <ReactFlowProvider>
@@ -117,22 +131,11 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
               <div className="flex items-center">
                 <input
                   type="text"
-                  value={projectName}
-                  onChange={(e) => {
-                    if (typeof onSave === "function") {
-                      // If parent manages projectName, call onSave with new name (optional)
-                      // Otherwise, do nothing
-                    } else {
-                      // If local, update state (not supported in this version)
-                    }
-                  }}
-                  onBlur={(e) => {
-                    // Optionally trigger save on blur
-                  }}
+                  value={currentName}
+                  onChange={(e) => setCurrentName(e.target.value)}
                   className="text-lg font-semibold bg-transparent border border-gray/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 px-2 mr-2 w-auto min-w-[80px] max-w-[300px] truncate transition-shadow shadow-sm"
                   style={{ minWidth: 80, maxWidth: 300 }}
                   spellCheck={false}
-                  readOnly={typeof onSave !== "function"}
                 />
                 <Badge
                   variant="outline"
@@ -149,15 +152,15 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
             <div className="flex items-center mr-2">
               <Switch
                 id="private-toggle"
-                checked={isPrivate}
-                onCheckedChange={setIsPrivate}
+                checked={currentIsPrivate}
+                onCheckedChange={setCurrentIsPrivate}
                 className="mr-2"
               />
               <label
                 htmlFor="private-toggle"
                 className="text-sm select-none cursor-pointer"
               >
-                {isPrivate ? "Private" : "Public"}
+                Private
               </label>
             </div>
             <Button

@@ -126,8 +126,6 @@ const exampleProjectData: Record<string, ProjectData> = {
           label: "GET /admin/logs",
           type: "endpoint-get",
           category: "Endpoints",
-          description: "Get admin logs",
-          icon: "FileText",
           color: "bg-blue-400",
           inputs: 0,
           outputs: 1,
@@ -1031,18 +1029,18 @@ const ProjectEditorPage = () => {
     // Save to backend
     try {
       const userEmail = user?.email || "";
-      // Use the name and isShared from the loaded project if available
+      // Use the name and isShared from the FlowBuilder (projectData)
       const payload = {
         projectId: project.id,
         email: userEmail,
-        title: project.name, // Always use the name from the created project
+        title: projectData.name, // Use the name from FlowBuilder
         projectType:
           project.type === "rest-api"
             ? "RESTApi"
             : project.type === "graphql"
             ? "GraphQL"
             : "WebSocket",
-        isShared: (project as any).isShared ?? false, // Use isShared from project if present
+        isShared: projectData.isShared ?? false, // Use isShared from FlowBuilder
         blockLayout: {
           description: projectData.description || "",
           endpoints: (projectData.nodes || []).map(

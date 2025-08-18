@@ -3,7 +3,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Plus, Search, Calendar, ExternalLink } from "lucide-react";
+import { Plus, Search, Calendar, ExternalLink, Trash2 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
+// Delete project handler
+
 import { Link, useNavigate } from "react-router-dom";
 import {
   SignedIn,
@@ -39,6 +52,36 @@ const ProjectsPage = () => {
 
   const navigate = useNavigate();
   const { signOut, user } = useAsgardeo();
+
+  // Delete dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
+
+  const handleDeleteProject = async (projectId: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch(
+        `${BACKEND_BASE_URL}/projects/remove?projectId=${encodeURIComponent(
+          projectId
+        )}`,
+        {
+          method: "DELETE",
+        }
+      );
+      if (res.ok) {
+        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+      } else {
+        setError("Failed to delete project.");
+      }
+    } catch (err) {
+      setError("Failed to delete project.");
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
+      setPendingDeleteId(null);
+    }
+  };
 
   // Example projects (different from user's projects)
   const exampleProjects: Project[] = [
@@ -188,8 +231,11 @@ const ProjectsPage = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
-    // Navigate to project editor
-    navigate(`/projects/editor/${projectId}`);
+    // Only navigate if the project still exists in the list (prevents navigation after delete)
+    const exists = projects.some((p) => p.id === projectId);
+    if (exists) {
+      navigate(`/projects/editor/${projectId}`);
+    }
   };
 
   // Handle clicking an example project
@@ -249,6 +295,7 @@ const ProjectsPage = () => {
             endpoints: 0,
           },
         ]);
+        // Only navigate after creating a project, not after deleting
         navigate(`/projects/editor/${newProject.projectId}`);
       } else {
         setError(result.error || "Failed to create project.");
@@ -549,7 +596,58 @@ const ProjectsPage = () => {
                                   {project.category}
                                 </Badge>
                               </div>
-                              <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                              <div className="flex items-center gap-2">
+                                <AlertDialog
+                                  open={
+                                    deleteDialogOpen &&
+                                    pendingDeleteId === project.id
+                                  }
+                                  onOpenChange={(open) => {
+                                    setDeleteDialogOpen(open);
+                                    if (!open) setPendingDeleteId(null);
+                                  }}
+                                >
+                                  <AlertDialogTrigger asChild>
+                                    <Trash2
+                                      className="h-4 w-4 text-primary hover:text-primary/80 cursor-pointer transition-colors"
+                                      aria-label="Delete project"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setPendingDeleteId(project.id);
+                                        setDeleteDialogOpen(true);
+                                      }}
+                                    />
+                                  </AlertDialogTrigger>
+                                  <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                      <AlertDialogTitle>
+                                        Are you sure you want to delete this
+                                        project?
+                                      </AlertDialogTitle>
+                                      <AlertDialogDescription>
+                                        This action cannot be undone.
+                                      </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                      <AlertDialogCancel
+                                        onClick={() =>
+                                          setDeleteDialogOpen(false)
+                                        }
+                                      >
+                                        Cancel
+                                      </AlertDialogCancel>
+                                      <AlertDialogAction
+                                        onClick={() =>
+                                          handleDeleteProject(project.id)
+                                        }
+                                        className="bg-primary/80 text-primary-foreground hover:bg-primary"
+                                      >
+                                        Delete
+                                      </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                  </AlertDialogContent>
+                                </AlertDialog>
+                              </div>
                             </div>
                           </CardHeader>
 
