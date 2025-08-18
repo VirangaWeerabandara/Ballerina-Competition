@@ -234,7 +234,34 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
   const categories = Array.from(new Set(blocks.map((block) => block.category)));
 
   const handleDragStart = (block: BlockType) => (e: React.DragEvent) => {
-    e.dataTransfer.setData("application/json", JSON.stringify(block));
+    console.log("Drag start - block:", block.name);
+    // Create a serializable version without the React icon component
+    const serializableBlock = {
+      id: block.id,
+      name: block.name,
+      category: block.category,
+      color: block.color,
+      description: block.description,
+      inputs: block.inputs,
+      outputs: block.outputs,
+    };
+    // Set multiple data formats for better compatibility
+    e.dataTransfer.setData(
+      "application/json",
+      JSON.stringify(serializableBlock)
+    );
+    e.dataTransfer.setData("text/plain", JSON.stringify(serializableBlock));
+    e.dataTransfer.setData(
+      "application/x-block-data",
+      JSON.stringify(serializableBlock)
+    );
+
+    // Set the allowed effects
+    e.dataTransfer.effectAllowed = "copy";
+    console.log(
+      "Drag start - effectAllowed set to:",
+      e.dataTransfer.effectAllowed
+    );
     onDragStart(block);
   };
 

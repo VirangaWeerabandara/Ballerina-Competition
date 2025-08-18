@@ -1,34 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ArrowLeft,
-  Settings,
-  Share,
-  Save,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import ComponentSidebar, {
-  BlockType,
-} from "@/components/project/ComponentSidebar";
-import ProjectCanvas, {
-  CanvasBlock,
-  Connection,
-} from "@/components/project/ProjectCanvas";
-import SimulationPanel from "@/components/project/SimulationPanel";
-import { ProjectType } from "@/components/project/CreateProjectModal";
+import ApiBuilder from "@/components/api-builder/ApiBuilder";
 
 interface ProjectData {
   id: string;
   name: string;
-  type: ProjectType;
+  type: "rest-api" | "graphql" | "websocket";
   template: string;
-  blocks: CanvasBlock[];
-  connections: Connection[];
 }
 
 const ProjectEditorPage = () => {
@@ -37,18 +17,10 @@ const ProjectEditorPage = () => {
 
   const [project, setProject] = useState<ProjectData>({
     id: projectId || "new",
-    name: "Untitled Project",
+    name: "Untitled API Project",
     type: "rest-api",
     template: "basic-crud",
-    blocks: [],
-    connections: [],
   });
-
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  // Sidebar/panel visibility
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showSimPanel, setShowSimPanel] = useState(true);
 
   // Load project data (in a real app, this would fetch from an API)
   useEffect(() => {
@@ -59,112 +31,20 @@ const ProjectEditorPage = () => {
         name: "E-commerce API",
         type: "rest-api",
         template: "basic-crud",
-        blocks: [],
-        connections: [],
       };
       setProject(mockProject);
     }
   }, [projectId]);
 
-  const handleBlockAdd = (block: CanvasBlock) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: [...prev.blocks, block],
-    }));
+  const handleSave = (projectData: any) => {
+    console.log("Saving project:", projectData);
+    // Here you would typically save to your backend
+    // For now, we'll just save to localStorage
+    localStorage.setItem(`project_${project.id}`, JSON.stringify(projectData));
   };
 
-  const handleBlockUpdate = (
-    blockId: string,
-    updates: Partial<CanvasBlock>
-  ) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.instanceId === blockId ? { ...block, ...updates } : block
-      ),
-    }));
-  };
-
-  const handleBlockDelete = (blockId: string) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: prev.blocks.filter((block) => block.instanceId !== blockId),
-      connections: prev.connections.filter(
-        (conn) => conn.fromBlockId !== blockId && conn.toBlockId !== blockId
-      ),
-    }));
-  };
-
-  const handleConnectionAdd = (connection: Connection) => {
-    setProject((prev) => ({
-      ...prev,
-      connections: [...prev.connections, connection],
-    }));
-  };
-
-  const handleConnectionDelete = (connectionId: string) => {
-    setProject((prev) => ({
-      ...prev,
-      connections: prev.connections.filter((conn) => conn.id !== connectionId),
-    }));
-  };
-
-  const handleSimulationStart = () => {
-    if (project.blocks.length === 0) {
-      alert("Add some blocks to the canvas before starting simulation");
-      return;
-    }
-    setIsSimulating(true);
-  };
-
-  const handleSimulationStop = () => {
-    setIsSimulating(false);
-  };
-
-  const handleSimulationReset = () => {
-    setIsSimulating(false);
-    // Reset simulation state
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Project saved:", project);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDragStart = (blockType: BlockType) => {
-    // Handle drag start if needed
-  };
-
-  const getProjectTypeColor = (type: ProjectType) => {
-    switch (type) {
-      case "rest-api":
-        return "bg-blue-500";
-      case "graphql":
-        return "bg-purple-500";
-      case "websocket":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const getProjectTypeName = (type: ProjectType) => {
-    switch (type) {
-      case "rest-api":
-        return "REST API";
-      case "graphql":
-        return "GraphQL";
-      case "websocket":
-        return "WebSocket";
-      default:
-        return "Unknown";
-    }
+  const handleBack = () => {
+    navigate("/projects");
   };
 
   return (
@@ -186,156 +66,11 @@ const ProjectEditorPage = () => {
       </SignedOut>
 
       <SignedIn>
-        <div className="h-screen flex flex-col bg-background">
-          {/* Header */}
-          <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/projects")}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Projects</span>
-              </Button>
-
-              <div className="h-6 w-px bg-border" />
-
-              <div className="flex items-center space-x-3">
-                <div>
-                  <h1 className="text-lg font-semibold">{project.name}</h1>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant="secondary"
-                      className={`text-white ${getProjectTypeColor(
-                        project.type
-                      )}`}
-                    >
-                      {getProjectTypeName(project.type)}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      Template: {project.template}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-
-              <Button variant="outline" size="sm">
-                <Share className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Left Sidebar - Components */}
-            {showSidebar ? (
-              <div className="relative h-full">
-                <ComponentSidebar
-                  projectType={project.type}
-                  onDragStart={() => {}}
-                />
-                <button
-                  className="absolute top-2 right-0 z-30 bg-card border border-border rounded-l px-1 py-1 hover:bg-muted"
-                  style={{ transform: "translateX(100%)" }}
-                  onClick={() => setShowSidebar(false)}
-                  aria-label="Hide sidebar"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                className="h-10 w-6 flex items-center justify-center bg-card border-r border-border hover:bg-muted z-30"
-                onClick={() => setShowSidebar(true)}
-                aria-label="Show sidebar"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Center - Canvas */}
-            <div className="flex-1 min-w-0 h-full relative">
-              <ProjectCanvas
-                blocks={project.blocks}
-                connections={project.connections}
-                onBlockAdd={handleBlockAdd}
-                onBlockUpdate={handleBlockUpdate}
-                onBlockDelete={handleBlockDelete}
-                onConnectionAdd={handleConnectionAdd}
-                onConnectionDelete={handleConnectionDelete}
-                onSimulate={handleSimulationStart}
-                isSimulating={isSimulating}
-                showGrid={true}
-              />
-            </div>
-
-            {/* Show SimulationPanel icon (when hidden) - always at far right edge */}
-            {!showSimPanel && (
-              <button
-                className="absolute top-20 right-0 z-40 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
-                style={{ height: "40px" }}
-                onClick={() => setShowSimPanel(true)}
-                aria-label="Show simulation panel"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Right Sidebar - Simulation */}
-            {showSimPanel && (
-              <div className="relative h-full">
-                <SimulationPanel
-                  blocks={project.blocks}
-                  connections={project.connections}
-                  isSimulating={isSimulating}
-                  onStart={handleSimulationStart}
-                  onStop={handleSimulationStop}
-                  onReset={handleSimulationReset}
-                />
-                <button
-                  className="absolute top-2 left-0 z-30 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
-                  style={{ transform: "translateX(-100%)" }}
-                  onClick={() => setShowSimPanel(false)}
-                  aria-label="Hide simulation panel"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Status Bar */}
-          <div className="h-8 bg-card border-t border-border flex items-center justify-between px-6 text-xs text-muted-foreground">
-            <div className="flex items-center space-x-4">
-              <span>Blocks: {project.blocks.length}</span>
-              <span>Connections: {project.connections.length}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span>Status: {isSimulating ? "Running" : "Stopped"}</span>
-              <span>Last saved: Just now</span>
-            </div>
-          </div>
-        </div>
+        <ApiBuilder
+          projectName={project.name}
+          onBack={handleBack}
+          onSave={handleSave}
+        />
       </SignedIn>
     </>
   );
