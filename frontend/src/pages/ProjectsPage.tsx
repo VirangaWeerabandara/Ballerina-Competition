@@ -13,7 +13,12 @@ import {
   LogOut,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton, useAsgardeo } from "@asgardeo/react";
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  useAsgardeo,
+} from "@asgardeo/react";
 import CreateProjectModal, {
   ProjectType,
 } from "@/components/project/CreateProjectModal";
@@ -30,58 +35,64 @@ interface Project {
 const ProjectsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<"my" | "examples">("my");
   const navigate = useNavigate();
-  const {signOut } = useAsgardeo();
+  const { signOut } = useAsgardeo();
 
+  // Example projects (different from user's projects)
+  const exampleProjects: Project[] = [
+    {
+      id: "example_chatbot",
+      title: "Chatbot API",
+      description: "Conversational AI API for customer support and FAQs.",
+      category: "AI",
+      date: "Example",
+      endpoints: 10,
+    },
+    {
+      id: "example_weather",
+      title: "Weather Data Service",
+      description: "REST API for real-time and historical weather data.",
+      category: "Data",
+      date: "Example",
+      endpoints: 7,
+    },
+    {
+      id: "example_blog",
+      title: "Blog Platform API",
+      description: "API for posts, comments, and user profiles in a blog.",
+      category: "Content",
+      date: "Example",
+      endpoints: 12,
+    },
+  ];
 
+  // User's own projects (mock)
   const mockProjects: Project[] = [
     {
       id: "1",
-      title: "E-commerce API",
-      description: "Complete REST API for online store with payment processing",
-      category: "E-commerce",
+      title: "Inventory Tracker",
+      description: "API for managing warehouse inventory and stock levels.",
+      category: "Logistics",
       date: "2 hours ago",
-      endpoints: 24,
+      endpoints: 14,
     },
     {
       id: "2",
-      title: "User Management System",
-      description: "Authentication and user management services",
-      category: "Auth",
+      title: "Fitness App Backend",
+      description: "Workout plans, user progress, and nutrition tracking.",
+      category: "Health",
       date: "1 day ago",
-      endpoints: 12,
+      endpoints: 9,
     },
     {
       id: "3",
-      title: "Payment Gateway Integration",
-      description: "Secure payment processing API with multiple providers",
-      category: "Finance",
+      title: "Event Ticketing API",
+      description:
+        "API for event creation, ticket sales, and attendee management.",
+      category: "Events",
       date: "3 days ago",
-      endpoints: 8,
-    },
-    {
-      id: "4",
-      title: "Social Media API",
-      description: "Posts, comments, likes and social interaction features",
-      category: "Social",
-      date: "1 week ago",
-      endpoints: 18,
-    },
-    {
-      id: "5",
-      title: "IoT Data Collector",
-      description: "Real-time sensor data aggregation and processing",
-      category: "IoT",
-      date: "2 weeks ago",
-      endpoints: 6,
-    },
-    {
-      id: "6",
-      title: "Analytics Dashboard API",
-      description: "Business intelligence and reporting services",
-      category: "Analytics",
-      date: "1 month ago",
-      endpoints: 15,
+      endpoints: 11,
     },
   ];
 
@@ -117,6 +128,12 @@ const ProjectsPage = () => {
     navigate(`/projects/editor/${projectId}`);
   };
 
+  // Handle clicking an example project
+  const handleExampleClick = (example: Project) => {
+    // Pass example=true and exampleId for the editor to load the example
+    navigate(`/projects/editor/${example.id}?example=true`);
+  };
+
   return (
     <>
       <SignedOut>
@@ -138,9 +155,9 @@ const ProjectsPage = () => {
       <SignedIn>
         <div className="min-h-screen bg-background">
           {/* Header */}
-          <header className="bg-card border-b border-border">
-            <div className="container mx-auto px-6 py-4">
-              <div className="flex items-center justify-between">
+          <header className="bg-card border-b border-border relative">
+            <div className="container mx-auto px-6 py-4 relative">
+              <div className="flex items-center justify-between relative">
                 <div className="flex items-center space-x-4">
                   <Link to="/" className="flex items-center space-x-2">
                     <img src="/logo.svg" alt="OneBlock" className="h-8 w-8" />
@@ -159,6 +176,36 @@ const ProjectsPage = () => {
                   >
                     Logout
                   </Button>
+                </div>
+
+                {/* Absolutely centered toggle, always in the middle of the header */}
+                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 select-none z-10">
+                  <span
+                    className="inline-flex items-center gap-2 text-base font-semibold cursor-pointer"
+                    onClick={() =>
+                      setActiveTab(activeTab === "my" ? "examples" : "my")
+                    }
+                  >
+                    <span
+                      className={
+                        activeTab === "my"
+                          ? "text-primary underline underline-offset-4"
+                          : "text-muted-foreground hover:text-primary"
+                      }
+                    >
+                      My Projects
+                    </span>
+                    <span className="mx-2 text-muted-foreground">|</span>
+                    <span
+                      className={
+                        activeTab === "examples"
+                          ? "text-primary underline underline-offset-4"
+                          : "text-muted-foreground hover:text-primary"
+                      }
+                    >
+                      Examples
+                    </span>
+                  </span>
                 </div>
               </div>
             </div>
@@ -186,81 +233,127 @@ const ProjectsPage = () => {
               </Button>
             </div>
 
-            {/* Search Bar */}
-            <div className="relative mb-8">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                type="text"
-                placeholder="Search projects..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-
-            {/* Projects Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredProjects.map((project) => (
-                <Card
-                  key={project.id}
-                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
-                  onClick={() => handleProjectClick(project.id)}
-                >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                          {project.title}
-                        </CardTitle>
-                        <Badge variant="secondary" className="mt-2">
-                          {project.category}
-                        </Badge>
-                      </div>
-                      <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-                    </div>
-                  </CardHeader>
-
-                  <CardContent>
-                    <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                      {project.description}
-                    </p>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <Calendar className="h-3 w-3" />
-                        <span>{project.date}</span>
-                      </div>
-                      <span>{project.endpoints} endpoints</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {filteredProjects.length === 0 && (
-              <div className="text-center py-12">
-                <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ExternalLink className="w-8 h-8 text-muted-foreground" />
+            {/* Tab Content */}
+            {activeTab === "examples" ? (
+              <div className="mb-12">
+                <h2 className="text-xl font-semibold text-foreground mb-4">
+                  Example Projects
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {exampleProjects.map((example) => (
+                    <Card
+                      key={example.id}
+                      className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group border-dashed border-2 border-muted"
+                      onClick={() => handleExampleClick(example)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                              {example.title}
+                            </CardTitle>
+                            <Badge variant="secondary" className="mt-2">
+                              {example.category}
+                            </Badge>
+                          </div>
+                          <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          {example.description}
+                        </p>
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{example.date}</span>
+                          </div>
+                          <span>{example.endpoints} endpoints</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
                 </div>
-                <h3 className="text-lg font-medium text-foreground mb-2">
-                  {searchTerm ? "No projects found" : "No projects yet"}
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm
-                    ? "Try adjusting your search terms."
-                    : "Create your first project to get started."}
-                </p>
-                {!searchTerm && (
-                  <Button
-                    onClick={handleCreateProject}
-                    className="bg-primary hover:bg-primary/90"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Project
-                  </Button>
-                )}
               </div>
+            ) : (
+              <>
+                {/* Search Bar */}
+                <div className="relative mb-8">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    type="text"
+                    placeholder="Search projects..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                {/* Projects Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {filteredProjects.map((project) => (
+                    <Card
+                      key={project.id}
+                      className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
+                      onClick={() => handleProjectClick(project.id)}
+                    >
+                      <CardHeader className="pb-3">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                              {project.title}
+                            </CardTitle>
+                            <Badge variant="secondary" className="mt-2">
+                              {project.category}
+                            </Badge>
+                          </div>
+                          <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                        </div>
+                      </CardHeader>
+
+                      <CardContent>
+                        <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                          {project.description}
+                        </p>
+
+                        <div className="flex items-center justify-between text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <Calendar className="h-3 w-3" />
+                            <span>{project.date}</span>
+                          </div>
+                          <span>{project.endpoints} endpoints</span>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+
+                {/* Empty State */}
+                {filteredProjects.length === 0 && (
+                  <div className="text-center py-12">
+                    <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+                      <ExternalLink className="w-8 h-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-medium text-foreground mb-2">
+                      {searchTerm ? "No projects found" : "No projects yet"}
+                    </h3>
+                    <p className="text-muted-foreground mb-4">
+                      {searchTerm
+                        ? "Try adjusting your search terms."
+                        : "Create your first project to get started."}
+                    </p>
+                    {!searchTerm && (
+                      <Button
+                        onClick={handleCreateProject}
+                        className="bg-primary hover:bg-primary/90"
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Project
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </>
             )}
           </main>
 

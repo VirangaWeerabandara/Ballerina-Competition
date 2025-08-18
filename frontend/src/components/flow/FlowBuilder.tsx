@@ -19,20 +19,35 @@ import FlowCanvas from "./FlowCanvas";
 import SimulationPanel from "../project/SimulationPanel";
 import { useAsgardeo } from "@asgardeo/react";
 
+import { Node, Edge } from "reactflow";
+
 interface FlowBuilderProps {
   projectName?: string;
+  initialNodes?: Node[];
+  initialEdges?: Edge[];
   onBack?: () => void;
   onSave?: (data: any) => void;
 }
 
+import { useEffect } from "react";
 const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   projectName = "Untitled API Project",
+  initialNodes = [],
+  initialEdges = [],
   onBack,
   onSave,
 }) => {
   // React Flow state
-  const [nodes, setNodes, onNodesChange] = useNodesState([]);
-  const [edges, setEdges, onEdgesChange] = useEdgesState([]);
+  const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
+  const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  // Reset nodes/edges when initialNodes/initialEdges change (e.g., when loading a new example)
+  useEffect(() => {
+    setNodes(initialNodes || []);
+  }, [JSON.stringify(initialNodes)]);
+  useEffect(() => {
+    setEdges(initialEdges || []);
+  }, [JSON.stringify(initialEdges)]);
 
   // UI state
   const [showComponentPalette, setShowComponentPalette] = useState(true);
