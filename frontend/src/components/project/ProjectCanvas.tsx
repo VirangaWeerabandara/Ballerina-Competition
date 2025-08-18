@@ -34,7 +34,7 @@ interface ProjectCanvasProps {
   isSimulating: boolean;
 }
 
-const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
+const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
   blocks,
   connections,
   onBlockAdd,
@@ -44,6 +44,7 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
   onConnectionDelete,
   onSimulate,
   isSimulating,
+  showGrid = true,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [draggedBlock, setDraggedBlock] = useState<CanvasBlock | null>(null);
@@ -55,22 +56,32 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
     blockId: string;
     port: number;
   } | null>(null);
+  // Pan/zoom state
+  const [canvasOffset, setCanvasOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [panStart, setPanStart] = useState({ x: 0, y: 0 });
+  const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
+  const [scale, setScale] = useState(1);
 
+  // Fix: Allow drop by preventing default and stopping propagation
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
       e.preventDefault();
+      e.stopPropagation();
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
-
       try {
         const blockData = JSON.parse(
           e.dataTransfer.getData("application/json")
         ) as BlockType;
+        // Adjust for pan/zoom
+        const x = (e.clientX - rect.left - canvasOffset.x) / scale - 75;
+        const y = (e.clientY - rect.top - canvasOffset.y) / scale - 40;
         const newBlock: CanvasBlock = {
           ...blockData,
           instanceId: `${blockData.id}_${Date.now()}`,
-          x: e.clientX - rect.left - 75, // Center the block
-          y: e.clientY - rect.top - 40,
+          x,
+          y,
           width: 150,
           height: 80,
         };
@@ -79,11 +90,12 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
         console.error("Error parsing dropped data:", error);
       }
     },
-    [onBlockAdd]
+    [onBlockAdd, canvasOffset, scale]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
+    e.stopPropagation();
   }, []);
 
   const handleBlockMouseDown = (block: CanvasBlock, e: React.MouseEvent) => {
@@ -96,29 +108,68 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
     const rect = canvasRef.current?.getBoundingClientRect();
     if (rect) {
       setDragOffset({
-        x: e.clientX - rect.left - block.x,
-        y: e.clientY - rect.top - block.y,
+        x: e.clientX - rect.left - canvasOffset.x - block.x * scale,
+        y: e.clientY - rect.top - canvasOffset.y - block.y * scale,
       });
     }
   };
 
   const handleMouseMove = useCallback(
     (e: React.MouseEvent) => {
-      if (!isDragging || !draggedBlock || !canvasRef.current) return;
-
-      const rect = canvasRef.current.getBoundingClientRect();
-      const newX = e.clientX - rect.left - dragOffset.x;
-      const newY = e.clientY - rect.top - dragOffset.y;
-
-      onBlockUpdate(draggedBlock.instanceId, { x: newX, y: newY });
+      if (isDragging && draggedBlock && canvasRef.current) {
+        const rect = canvasRef.current.getBoundingClientRect();
+        // Adjust for pan/zoom
+        const newX =
+          (e.clientX - rect.left - canvasOffset.x - dragOffset.x) / scale;
+        const newY =
+          (e.clientY - rect.top - canvasOffset.y - dragOffset.y) / scale;
+        onBlockUpdate(draggedBlock.instanceId, { x: newX, y: newY });
+      } else if (isPanning) {
+        const dx = e.clientX - panStart.x;
+        const dy = e.clientY - panStart.y;
+        setCanvasOffset({
+          x: panOrigin.x + dx,
+          y: panOrigin.y + dy,
+        });
+      }
     },
-    [isDragging, draggedBlock, dragOffset, onBlockUpdate]
+    [
+      isDragging,
+      draggedBlock,
+      dragOffset,
+      onBlockUpdate,
+      isPanning,
+      panStart,
+      panOrigin,
+      scale,
+      canvasOffset,
+    ]
   );
 
   const handleMouseUp = useCallback(() => {
     setIsDragging(false);
     setDraggedBlock(null);
+    setIsPanning(false);
   }, []);
+
+  // Pan start on empty canvas
+  const handleCanvasMouseDown = (e: React.MouseEvent) => {
+    // Only pan if not clicking on a block
+    if (e.target === canvasRef.current) {
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      setPanOrigin({ ...canvasOffset });
+    }
+  };
+
+  // Zoom with wheel
+  const handleWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const scaleAmount = -e.deltaY * 0.001;
+    let newScale = scale + scaleAmount;
+    newScale = Math.max(0.2, Math.min(2.5, newScale));
+    setScale(newScale);
+  };
 
   const handlePortClick = (
     blockId: string,
@@ -155,23 +206,25 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
 
       if (!fromBlock || !toBlock) return null;
 
-      const fromX = fromBlock.x + fromBlock.width;
-      const fromY = fromBlock.y + fromBlock.height / 2;
-      const toX = toBlock.x;
-      const toY = toBlock.y + toBlock.height / 2;
+      // Adjust for pan/zoom
+      const fromX = (fromBlock.x + fromBlock.width) * scale + canvasOffset.x;
+      const fromY =
+        (fromBlock.y + fromBlock.height / 2) * scale + canvasOffset.y;
+      const toX = toBlock.x * scale + canvasOffset.x;
+      const toY = (toBlock.y + toBlock.height / 2) * scale + canvasOffset.y;
 
       return (
         <svg
           key={connection.id}
           className="absolute inset-0 pointer-events-none"
-          style={{ zIndex: 1 }}
+          style={{ zIndex: 1, width: "100%", height: "100%" }}
         >
           <path
-            d={`M ${fromX} ${fromY} C ${fromX + 50} ${fromY} ${
-              toX - 50
+            d={`M ${fromX} ${fromY} C ${fromX + 50 * scale} ${fromY} ${
+              toX - 50 * scale
             } ${toY} ${toX} ${toY}`}
             stroke="hsl(var(--primary))"
-            strokeWidth="2"
+            strokeWidth={2 * scale}
             fill="none"
             className="drop-shadow-sm"
           />
@@ -182,6 +235,11 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
 
   const renderBlock = (block: CanvasBlock) => {
     const isSelected = selectedBlock === block.instanceId;
+    // Adjust for pan/zoom
+    const left = block.x * scale + canvasOffset.x;
+    const top = block.y * scale + canvasOffset.y;
+    const width = block.width * scale;
+    const height = block.height * scale;
 
     return (
       <div
@@ -190,10 +248,10 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
           isSelected ? "ring-2 ring-primary shadow-lg" : "hover:shadow-md"
         }`}
         style={{
-          left: block.x,
-          top: block.y,
-          width: block.width,
-          height: block.height,
+          left,
+          top,
+          width,
+          height,
           zIndex: isSelected ? 10 : 2,
         }}
         onMouseDown={(e) => handleBlockMouseDown(block, e)}
@@ -266,7 +324,11 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
   };
 
   return (
-    <div className="flex-1 relative overflow-hidden bg-muted/20">
+    <div
+      className="flex-1 relative overflow-hidden bg-muted/20"
+      onMouseMove={handleMouseMove}
+      onMouseUp={handleMouseUp}
+    >
       {/* Top toolbar */}
       <div className="absolute top-4 right-4 z-20 flex items-center space-x-2">
         <Button
@@ -285,21 +347,30 @@ const ProjectCanvas: React.FC<ProjectCanvasProps> = ({
         className="w-full h-full relative"
         onDrop={handleDrop}
         onDragOver={handleDragOver}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
         onClick={() => setSelectedBlock(null)}
+        onMouseDown={handleCanvasMouseDown}
+        onWheel={handleWheel}
+        style={{
+          pointerEvents: "auto",
+          cursor: isPanning ? "grabbing" : "default",
+        }}
       >
         {/* Grid background */}
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage: `
-              linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
-            `,
-            backgroundSize: "20px 20px",
-          }}
-        />
+        {showGrid && (
+          <div
+            className="absolute inset-0 opacity-30 pointer-events-none"
+            style={{
+              backgroundImage: `
+                linear-gradient(hsl(var(--border)) 1px, transparent 1px),
+                linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
+              `,
+              backgroundSize: `${20 * scale}px ${20 * scale}px`,
+              backgroundPosition: `${canvasOffset.x % (20 * scale)}px ${
+                canvasOffset.y % (20 * scale)
+              }px`,
+            }}
+          />
+        )}
 
         {/* Connection lines */}
         {renderConnectionLines()}

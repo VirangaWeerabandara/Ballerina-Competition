@@ -4,7 +4,14 @@ import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { ArrowLeft, Settings, Share, Save } from "lucide-react";
+import {
+  ArrowLeft,
+  Settings,
+  Share,
+  Save,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import ComponentSidebar, {
   BlockType,
 } from "@/components/project/ComponentSidebar";
@@ -39,6 +46,9 @@ const ProjectEditorPage = () => {
 
   const [isSimulating, setIsSimulating] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  // Sidebar/panel visibility
+  const [showSidebar, setShowSidebar] = useState(true);
+  const [showSimPanel, setShowSimPanel] = useState(true);
 
   // Load project data (in a real app, this would fetch from an API)
   useEffect(() => {
@@ -238,33 +248,80 @@ const ProjectEditorPage = () => {
           {/* Main Content */}
           <div className="flex-1 flex overflow-hidden">
             {/* Left Sidebar - Components */}
-            <ComponentSidebar
-              projectType={project.type}
-              onDragStart={handleDragStart}
-            />
+            {showSidebar ? (
+              <div className="relative h-full">
+                <ComponentSidebar
+                  projectType={project.type}
+                  onDragStart={() => {}}
+                />
+                <button
+                  className="absolute top-2 right-0 z-30 bg-card border border-border rounded-l px-1 py-1 hover:bg-muted"
+                  style={{ transform: "translateX(100%)" }}
+                  onClick={() => setShowSidebar(false)}
+                  aria-label="Hide sidebar"
+                >
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                className="h-10 w-6 flex items-center justify-center bg-card border-r border-border hover:bg-muted z-30"
+                onClick={() => setShowSidebar(true)}
+                aria-label="Show sidebar"
+              >
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Center - Canvas */}
-            <ProjectCanvas
-              blocks={project.blocks}
-              connections={project.connections}
-              onBlockAdd={handleBlockAdd}
-              onBlockUpdate={handleBlockUpdate}
-              onBlockDelete={handleBlockDelete}
-              onConnectionAdd={handleConnectionAdd}
-              onConnectionDelete={handleConnectionDelete}
-              onSimulate={handleSimulationStart}
-              isSimulating={isSimulating}
-            />
+            <div className="flex-1 min-w-0 h-full relative">
+              <ProjectCanvas
+                blocks={project.blocks}
+                connections={project.connections}
+                onBlockAdd={handleBlockAdd}
+                onBlockUpdate={handleBlockUpdate}
+                onBlockDelete={handleBlockDelete}
+                onConnectionAdd={handleConnectionAdd}
+                onConnectionDelete={handleConnectionDelete}
+                onSimulate={handleSimulationStart}
+                isSimulating={isSimulating}
+                showGrid={true}
+              />
+            </div>
+
+            {/* Show SimulationPanel icon (when hidden) - always at far right edge */}
+            {!showSimPanel && (
+              <button
+                className="absolute top-20 right-0 z-40 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
+                style={{ height: "40px" }}
+                onClick={() => setShowSimPanel(true)}
+                aria-label="Show simulation panel"
+              >
+                <ChevronLeft className="w-5 h-5" />
+              </button>
+            )}
 
             {/* Right Sidebar - Simulation */}
-            <SimulationPanel
-              blocks={project.blocks}
-              connections={project.connections}
-              isSimulating={isSimulating}
-              onStart={handleSimulationStart}
-              onStop={handleSimulationStop}
-              onReset={handleSimulationReset}
-            />
+            {showSimPanel && (
+              <div className="relative h-full">
+                <SimulationPanel
+                  blocks={project.blocks}
+                  connections={project.connections}
+                  isSimulating={isSimulating}
+                  onStart={handleSimulationStart}
+                  onStop={handleSimulationStop}
+                  onReset={handleSimulationReset}
+                />
+                <button
+                  className="absolute top-2 left-0 z-30 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
+                  style={{ transform: "translateX(-100%)" }}
+                  onClick={() => setShowSimPanel(false)}
+                  aria-label="Hide simulation panel"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Status Bar */}
