@@ -218,10 +218,12 @@ const ProjectsPage = () => {
       email: user.email,
       title: data.name,
       projectType,
-      isShared: data.isShared,
+      isShared: !!data.isShared, // ensure boolean and matches toggle
       blockLayout: {
         description: "",
         endpoints: [],
+        nodes: [],
+        edges: [],
         template: data.template,
       },
     };

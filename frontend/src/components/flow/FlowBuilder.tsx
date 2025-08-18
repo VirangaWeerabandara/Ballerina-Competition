@@ -1,8 +1,10 @@
 import React, { useState, useCallback } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import { ReactFlowProvider, useNodesState, useEdgesState } from "reactflow";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Switch } from "@/components/ui/switch";
 import {
   Save,
   Share,
@@ -54,6 +56,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   const [showSimulationPanel, setShowSimulationPanel] = useState(true);
   const [isSimulating, setIsSimulating] = useState(false);
   const { user, signIn, signOut, isSignedIn, isLoading } = useAsgardeo();
+
   // Simulation state - simplified for now
   const [simulation] = useState({
     isRunning: false,
@@ -61,6 +64,9 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
     currentStep: 0,
     speed: 1,
   });
+
+  // Public/Private toggle state (reversed: checked = Private, unchecked = Public)
+  const [isPrivate, setIsPrivate] = useState(false);
 
   const handleSimulation = useCallback(() => {
     setIsSimulating(!isSimulating);
@@ -72,6 +78,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
       name: projectName,
       nodes: nodes,
       edges: edges,
+      isShared: !isPrivate, // isShared is true when not private
       timestamp: new Date().toISOString(),
     };
 
@@ -81,41 +88,22 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
       localStorage.setItem("flow-builder-project", JSON.stringify(projectData));
       console.log("Project saved to localStorage");
     }
-  }, [projectName, onSave, nodes, edges]);
-
-  const handleExport = useCallback(() => {
-    const projectData = {
-      name: projectName,
-      nodes: nodes,
-      edges: edges,
-      exportedAt: new Date().toISOString(),
-    };
-
-    const blob = new Blob([JSON.stringify(projectData, null, 2)], {
-      type: "application/json",
-    });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${projectName.replace(/\s+/g, "-").toLowerCase()}.json`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  }, [projectName, nodes, edges]);
+    toast.success("Project saved!");
+  }, [projectName, onSave, nodes, edges, isPrivate]);
 
   return (
     <ReactFlowProvider>
-      <div className="h-screen flex flex-col bg-background">
+      <Toaster position="bottom-right" />
+      <div className="h-screen flex flex-col bg-white/60 backdrop-blur-2xl">
         {/* Header */}
-        <header className="h-16 bg-card/70 border-b border-border flex items-center justify-between px-6 backdrop-blur-md shadow-md">
+        <header className="h-16 bg-white/40 flex items-center justify-between px-6 backdrop-blur-2xl shadow-md">
           <div className="flex items-center space-x-4">
             {onBack && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={onBack}
-                className="flex items-center space-x-2"
+                className="flex items-center px-2 py-1 bg-transparent hover:bg-primary/10 border-none shadow-none"
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
@@ -125,32 +113,61 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
             <Separator orientation="vertical" className="h-6" />
 
             <div className="flex items-center space-x-3">
-              <div>
-                <h1 className="text-lg font-semibold">{projectName}</h1>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Badge variant="secondary" className="bg-blue-500 text-white">
-                    REST API Flow
-                  </Badge>
-                  <span>• React Flow Editor</span>
-                </div>
+              {/* Editable project name with badge to the right */}
+              <div className="flex items-center">
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => {
+                    if (typeof onSave === "function") {
+                      // If parent manages projectName, call onSave with new name (optional)
+                      // Otherwise, do nothing
+                    } else {
+                      // If local, update state (not supported in this version)
+                    }
+                  }}
+                  onBlur={(e) => {
+                    // Optionally trigger save on blur
+                  }}
+                  className="text-lg font-semibold bg-transparent border border-gray/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 px-2 mr-2 w-auto min-w-[80px] max-w-[300px] truncate transition-shadow shadow-sm"
+                  style={{ minWidth: 80, maxWidth: 300 }}
+                  spellCheck={false}
+                  readOnly={typeof onSave !== "function"}
+                />
+                <Badge
+                  variant="outline"
+                  className="ml-0 bg-white/40 text-blue-400 border-blue-300/30 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold"
+                >
+                  REST API
+                </Badge>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" size="sm" onClick={handleSave}>
-              <Save className="w-4 h-4 mr-2" />
-              Save
-            </Button>
-
-            <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-
-            <Button variant="outline" size="sm">
-              <Share className="w-4 h-4 mr-2" />
-              Share
+          <div className="flex items-center space-x-4">
+            {/* Public/Private Toggle (reversed) */}
+            <div className="flex items-center mr-2">
+              <Switch
+                id="private-toggle"
+                checked={isPrivate}
+                onCheckedChange={setIsPrivate}
+                className="mr-2"
+              />
+              <label
+                htmlFor="private-toggle"
+                className="text-sm select-none cursor-pointer"
+              >
+                {isPrivate ? "Private" : "Public"}
+              </label>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSave}
+              className="flex items-center px-2 py-1 bg-transparent hover:bg-primary/10 border-none shadow-none"
+            >
+              <Save className="w-4 h-4 mr-1" />
+              <span className="font-medium">Save</span>
             </Button>
 
             <Button
@@ -163,13 +180,13 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
         </header>
 
         {/* Main Content */}
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex-1 flex overflow-hidden bg-white/30 backdrop-blur-2xl">
           {/* Component Palette */}
           {showComponentPalette ? (
             <div className="relative">
               <FlowPalette />
               <button
-                className="absolute top-2 right-0 z-30 bg-card border border-border rounded-l px-1 py-2 hover:bg-muted transition-colors"
+                className="absolute top-2 right-0 z-30 bg-white/60 rounded-l px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
                 style={{ transform: "translateX(100%)" }}
                 onClick={() => setShowComponentPalette(false)}
                 aria-label="Hide component palette"
@@ -179,7 +196,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
             </div>
           ) : (
             <button
-              className="w-6 h-full flex items-center justify-center bg-card border-r border-border hover:bg-muted transition-colors"
+              className="w-6 h-full flex items-center justify-center bg-white/60 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
               onClick={() => setShowComponentPalette(true)}
               aria-label="Show component palette"
             >
@@ -205,7 +222,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
           {showSimulationPanel ? (
             <div className="relative">
               <button
-                className="absolute top-2 left-0 z-30 bg-card border border-border rounded-r px-1 py-2 hover:bg-muted transition-colors"
+                className="absolute top-2 left-0 z-30 bg-white/60 rounded-r px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
                 style={{ transform: "translateX(-100%)" }}
                 onClick={() => setShowSimulationPanel(false)}
                 aria-label="Hide simulation panel"
@@ -244,7 +261,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
             </div>
           ) : (
             <button
-              className="w-6 h-full flex items-center justify-center bg-card border-l border-border hover:bg-muted transition-colors"
+              className="w-6 h-full flex items-center justify-center bg-white/60 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
               onClick={() => setShowSimulationPanel(true)}
               aria-label="Show simulation panel"
             >
@@ -254,7 +271,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
         </div>
 
         {/* Status Bar */}
-        <div className="h-8 bg-card border-t border-border flex items-center justify-between px-6 text-xs text-muted-foreground">
+        <div className="h-8 bg-white/40 flex items-center justify-between px-6 text-xs text-muted-foreground backdrop-blur-2xl">
           <div className="flex items-center space-x-4">
             <span>Powered by React Flow</span>
             <span>Status: {isSimulating ? "Simulating" : "Ready"}</span>

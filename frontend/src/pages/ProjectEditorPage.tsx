@@ -1031,12 +1031,18 @@ const ProjectEditorPage = () => {
     // Save to backend
     try {
       const userEmail = user?.email || "";
+      // Use the name and isShared from the loaded project if available
       const payload = {
         projectId: project.id,
         email: userEmail,
-        title: projectData.name || project.name,
-        projectType: "RESTApi", // You may want to map this from project.type
-        isShared: false, // You may want to allow sharing from the UI
+        title: project.name, // Always use the name from the created project
+        projectType:
+          project.type === "rest-api"
+            ? "RESTApi"
+            : project.type === "graphql"
+            ? "GraphQL"
+            : "WebSocket",
+        isShared: (project as any).isShared ?? false, // Use isShared from project if present
         blockLayout: {
           description: projectData.description || "",
           endpoints: (projectData.nodes || []).map(
