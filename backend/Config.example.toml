@@ -1,6 +1,0 @@
-[oneblok.backend.database]
-host = "localhost"
-port = 5432
-database = "oneblok_db"
-user = "<<YOUR_DB_USER>>"
-password = "<<YOUR_DB_PASSWORD>>"

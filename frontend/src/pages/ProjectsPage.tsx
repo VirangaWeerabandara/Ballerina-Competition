@@ -55,7 +55,7 @@ const ProjectsPage = () => {
       description: "REST API for real-time and historical weather data.",
       category: "Data",
       date: "Example",
-      endpoints: 7,
+      endpoints: 2,
     },
     {
       id: "example_blog",
@@ -63,7 +63,34 @@ const ProjectsPage = () => {
       description: "API for posts, comments, and user profiles in a blog.",
       category: "Content",
       date: "Example",
+      endpoints: 3,
+    },
+    {
+      id: "example_finance",
+      title: "Enterprise Finance Suite",
+      description:
+        "A complex API for multi-user, multi-account finance management: transactions, accounts, budgets, analytics, audit, and admin endpoints with layered middleware and database integration.",
+      category: "Finance",
+      date: "Example",
       endpoints: 12,
+    },
+    {
+      id: "example_iot",
+      title: "IoT Device Manager",
+      description:
+        "Manage IoT devices, telemetry, and alerts. Includes endpoints for device registration, data, and control.",
+      category: "IoT",
+      date: "Example",
+      endpoints: 4,
+    },
+    {
+      id: "example_social",
+      title: "Social Media API",
+      description:
+        "Endpoints for posts, likes, follows, and notifications in a social network.",
+      category: "Social",
+      date: "Example",
+      endpoints: 5,
     },
   ];
 
