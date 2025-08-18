@@ -333,10 +333,7 @@ const ProjectsPage = () => {
               <div className="flex items-center justify-between relative">
                 <div className="flex items-center space-x-4">
                   <Link to="/" className="flex items-center space-x-2">
-                    <img src="/logo.svg" alt="OneBlock" className="h-8 w-8" />
-                    <span className="text-xl font-bold text-foreground">
-                      OneBlock
-                    </span>
+                    <img src="/logo.svg" alt="OneBlock" className="h-8" />
                   </Link>
                   <span className="text-muted-foreground">/</span>
                   <span className="text-foreground font-medium">Projects</span>
