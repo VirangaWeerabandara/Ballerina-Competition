@@ -1,4 +1,4 @@
-import React from "react";
+import React, { FC } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -19,7 +19,7 @@ export interface BlockType {
   id: string;
   name: string;
   category: string;
-  icon: React.ReactNode;
+  icon: FC<React.SVGProps<SVGSVGElement>>;
   color: string;
   description: string;
   inputs: number;
@@ -41,7 +41,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
         id: "database",
         name: "Database",
         category: "Storage",
-        icon: <Database className="w-4 h-4" />,
+        icon: (props) => <Database {...props} />,
         color: "bg-green-500",
         description: "Data storage and retrieval",
         inputs: 1,
@@ -51,7 +51,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
         id: "auth",
         name: "Authentication",
         category: "Security",
-        icon: <Lock className="w-4 h-4" />,
+        icon: (props) => <Lock {...props} />,
         color: "bg-red-500",
         description: "User authentication service",
         inputs: 1,
@@ -61,7 +61,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
         id: "cache",
         name: "Cache",
         category: "Performance",
-        icon: <Zap className="w-4 h-4" />,
+        icon: (props) => <Zap {...props} />,
         color: "bg-yellow-500",
         description: "In-memory data caching",
         inputs: 1,
@@ -71,7 +71,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
         id: "external-api",
         name: "External API",
         category: "Integration",
-        icon: <CloudRain className="w-4 h-4" />,
+        icon: (props) => <CloudRain {...props} />,
         color: "bg-indigo-500",
         description: "Third-party API integration",
         inputs: 1,
@@ -86,7 +86,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "get-endpoint",
             name: "GET Endpoint",
             category: "HTTP",
-            icon: <Globe className="w-4 h-4" />,
+            icon: (props) => <Globe {...props} />,
             color: "bg-blue-500",
             description: "HTTP GET request handler",
             inputs: 0,
@@ -96,7 +96,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "post-endpoint",
             name: "POST Endpoint",
             category: "HTTP",
-            icon: <Globe className="w-4 h-4" />,
+            icon: (props) => <Globe {...props} />,
             color: "bg-green-600",
             description: "HTTP POST request handler",
             inputs: 0,
@@ -106,7 +106,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "put-endpoint",
             name: "PUT Endpoint",
             category: "HTTP",
-            icon: <Globe className="w-4 h-4" />,
+            icon: (props) => <Globe {...props} />,
             color: "bg-orange-500",
             description: "HTTP PUT request handler",
             inputs: 0,
@@ -116,7 +116,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "delete-endpoint",
             name: "DELETE Endpoint",
             category: "HTTP",
-            icon: <Globe className="w-4 h-4" />,
+            icon: (props) => <Globe {...props} />,
             color: "bg-red-600",
             description: "HTTP DELETE request handler",
             inputs: 0,
@@ -126,7 +126,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "middleware",
             name: "Middleware",
             category: "Processing",
-            icon: <Settings className="w-4 h-4" />,
+            icon: (props) => <Settings {...props} />,
             color: "bg-purple-500",
             description: "Request/response middleware",
             inputs: 1,
@@ -141,7 +141,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "query-resolver",
             name: "Query Resolver",
             category: "GraphQL",
-            icon: <Database className="w-4 h-4" />,
+            icon: (props) => <Database {...props} />,
             color: "bg-blue-500",
             description: "GraphQL query resolver",
             inputs: 0,
@@ -151,7 +151,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "mutation-resolver",
             name: "Mutation Resolver",
             category: "GraphQL",
-            icon: <Database className="w-4 h-4" />,
+            icon: (props) => <Database {...props} />,
             color: "bg-green-500",
             description: "GraphQL mutation resolver",
             inputs: 0,
@@ -161,7 +161,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "subscription-resolver",
             name: "Subscription Resolver",
             category: "GraphQL",
-            icon: <Database className="w-4 h-4" />,
+            icon: (props) => <Database {...props} />,
             color: "bg-purple-500",
             description: "GraphQL subscription resolver",
             inputs: 0,
@@ -171,7 +171,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "schema",
             name: "Schema Definition",
             category: "GraphQL",
-            icon: <Settings className="w-4 h-4" />,
+            icon: (props) => <Settings {...props} />,
             color: "bg-indigo-500",
             description: "GraphQL schema definition",
             inputs: 3,
@@ -186,7 +186,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "websocket-server",
             name: "WebSocket Server",
             category: "WebSocket",
-            icon: <Server className="w-4 h-4" />,
+            icon: (props) => <Server {...props} />,
             color: "bg-blue-500",
             description: "WebSocket connection handler",
             inputs: 0,
@@ -196,7 +196,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "room-manager",
             name: "Room Manager",
             category: "WebSocket",
-            icon: <Users className="w-4 h-4" />,
+            icon: (props) => <Users {...props} />,
             color: "bg-purple-500",
             description: "Manage user rooms/channels",
             inputs: 1,
@@ -206,7 +206,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "broadcast",
             name: "Broadcast",
             category: "WebSocket",
-            icon: <MessageSquare className="w-4 h-4" />,
+            icon: (props) => <MessageSquare {...props} />,
             color: "bg-green-500",
             description: "Broadcast messages to clients",
             inputs: 2,
@@ -216,7 +216,7 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
             id: "event-handler",
             name: "Event Handler",
             category: "WebSocket",
-            icon: <Zap className="w-4 h-4" />,
+            icon: (props) => <Zap {...props} />,
             color: "bg-orange-500",
             description: "Handle incoming events",
             inputs: 1,
@@ -292,10 +292,8 @@ const ComponentSidebar: React.FC<ComponentSidebarProps> = ({
                   >
                     <CardContent className="p-3">
                       <div className="flex items-start space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded ${block.color} text-white flex items-center justify-center flex-shrink-0`}
-                        >
-                          {block.icon}
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center flex-shrink-0 border border-border">
+                          <block.icon className="w-5 h-5 text-foreground" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h5 className="font-medium text-sm truncate">

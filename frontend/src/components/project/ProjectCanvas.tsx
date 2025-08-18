@@ -133,7 +133,7 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
 
         const serializableBlockData = JSON.parse(dataString);
 
-        // Reconstruct the full BlockType with icon
+        // Reconstruct the full BlockType with icon as a React element
         const blockData: BlockType = {
           ...serializableBlockData,
           icon: getIconForBlock(serializableBlockData.id),
@@ -406,7 +406,11 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
                 <div
                   className={`w-6 h-6 rounded ${block.color} text-white flex items-center justify-center`}
                 >
-                  {block.icon}
+                  {React.isValidElement(block.icon)
+                    ? block.icon
+                    : typeof block.icon === "function"
+                    ? React.createElement(block.icon)
+                    : null}
                 </div>
                 <span className="font-medium text-sm truncate">
                   {block.name}

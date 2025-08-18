@@ -66,6 +66,11 @@ interface CanvasComponentProps {
     isOutput: boolean
   ) => void;
   connections: Connection[];
+  connectionMode: {
+    active: boolean;
+    sourceId: string;
+    sourcePort: number;
+  } | null;
   scale: number;
 }
 
@@ -77,6 +82,7 @@ const CanvasComponentItem: React.FC<CanvasComponentProps> = ({
   onMove,
   onPortClick,
   connections,
+  connectionMode,
   scale,
 }) => {
   const { attributes, listeners, setNodeRef, isDragging, transform } =
@@ -162,13 +168,17 @@ const CanvasComponentItem: React.FC<CanvasComponentProps> = ({
                     conn.targetId === component.instanceId &&
                     conn.targetPort === i
                 );
+                const canConnect = connectionMode?.active && !hasConnection;
+
                 return (
                   <button
                     key={i}
-                    className={`w-4 h-4 border-2 rounded-full transition-all hover:scale-110 ${
+                    className={`w-4 h-4 border-2 rounded-full transition-all duration-200 ${
                       hasConnection
-                        ? "bg-primary border-primary shadow-sm"
-                        : "bg-background border-muted-foreground hover:border-primary hover:bg-primary/10"
+                        ? "bg-blue-500 border-blue-500 shadow-lg"
+                        : canConnect
+                        ? "bg-green-100 border-green-500 hover:bg-green-200 animate-pulse"
+                        : "bg-gray-200 border-gray-400 hover:border-blue-500 hover:bg-blue-100"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -197,13 +207,20 @@ const CanvasComponentItem: React.FC<CanvasComponentProps> = ({
                     conn.sourceId === component.instanceId &&
                     conn.sourcePort === i
                 );
+                const isActiveSource =
+                  connectionMode?.active &&
+                  connectionMode.sourceId === component.instanceId &&
+                  connectionMode.sourcePort === i;
+
                 return (
                   <button
                     key={i}
-                    className={`w-4 h-4 border-2 rounded-full transition-all hover:scale-110 ${
-                      hasConnection
-                        ? "bg-green-500 border-green-500 shadow-sm"
-                        : "bg-primary border-primary hover:bg-primary/80"
+                    className={`w-4 h-4 border-2 rounded-full transition-all duration-200 ${
+                      isActiveSource
+                        ? "bg-orange-500 border-orange-500 shadow-lg animate-pulse scale-125"
+                        : hasConnection
+                        ? "bg-green-500 border-green-500 shadow-lg"
+                        : "bg-blue-500 border-blue-500 hover:bg-blue-600"
                     }`}
                     onClick={(e) => {
                       e.stopPropagation();
@@ -269,6 +286,19 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
     },
   });
 
+  // Handle escape key to cancel connections
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setConnectionMode(null);
+        onComponentSelect(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onComponentSelect]);
+
   const handleCanvasClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
       onComponentSelect(null);
@@ -330,14 +360,24 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
     portIndex: number,
     isOutput: boolean
   ) => {
+    console.log("🎯 Port clicked:", {
+      componentId,
+      portIndex,
+      isOutput,
+      connectionMode,
+    });
+
     if (isOutput) {
+      // Starting a connection from output port
+      console.log("🔗 Starting connection mode");
       setConnectionMode({
         active: true,
         sourceId: componentId,
         sourcePort: portIndex,
       });
     } else if (connectionMode?.active) {
-      // Create connection
+      // Completing connection to input port
+      console.log("✅ Completing connection");
       const newConnection: Connection = {
         id: `conn_${Date.now()}`,
         sourceId: connectionMode.sourceId,
@@ -345,6 +385,7 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
         targetId: componentId,
         targetPort: portIndex,
       };
+      console.log("📦 New connection:", newConnection);
       onConnectionAdd(newConnection);
       setConnectionMode(null);
     }
@@ -356,6 +397,7 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
   };
 
   const renderConnections = () => {
+    console.log("🔄 Rendering connections:", connections);
     return connections.map((connection) => {
       const sourceComponent = components.find(
         (c) => c.instanceId === connection.sourceId
@@ -366,58 +408,55 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
 
       if (!sourceComponent || !targetComponent) return null;
 
-      // Calculate exact port positions
-      const sourcePortY =
-        sourceComponent.position.y + 45 + connection.sourcePort * 20; // Header + port spacing
-      const targetPortY =
-        targetComponent.position.y + 45 + connection.targetPort * 20;
-
+      // Calculate simple connection points
       const sourceX = sourceComponent.position.x + sourceComponent.size.width;
-      const sourceY = sourcePortY;
+      const sourceY =
+        sourceComponent.position.y + sourceComponent.size.height / 2;
       const targetX = targetComponent.position.x;
-      const targetY = targetPortY;
+      const targetY =
+        targetComponent.position.y + targetComponent.size.height / 2;
 
+      // Create smooth curve
       const midX = (sourceX + targetX) / 2;
+      const controlOffset = Math.min(Math.abs(targetX - sourceX) * 0.5, 100);
+
+      const pathData = `M ${sourceX * scale + panOffset.x} ${
+        sourceY * scale + panOffset.y
+      } 
+          C ${(sourceX + controlOffset) * scale + panOffset.x} ${
+        sourceY * scale + panOffset.y
+      } 
+            ${(targetX - controlOffset) * scale + panOffset.x} ${
+        targetY * scale + panOffset.y
+      } 
+            ${targetX * scale + panOffset.x} ${targetY * scale + panOffset.y}`;
+
+      console.log("🎨 Drawing connection path:", pathData);
 
       return (
         <g key={connection.id}>
+          {/* Main connection line */}
           <path
-            d={`M ${sourceX * scale + panOffset.x} ${
-              sourceY * scale + panOffset.y
-            } 
-                C ${midX * scale + panOffset.x} ${
-              sourceY * scale + panOffset.y
-            } 
-                  ${midX * scale + panOffset.x} ${
-              targetY * scale + panOffset.y
-            } 
-                  ${targetX * scale + panOffset.x} ${
-              targetY * scale + panOffset.y
-            }`}
-            stroke="hsl(var(--primary))"
-            strokeWidth={2}
+            d={pathData}
+            stroke="#3b82f6"
+            strokeWidth={5}
             fill="none"
-            className="drop-shadow-sm"
-            style={{ pointerEvents: "stroke", cursor: "pointer" }}
+            className="hover:stroke-red-500 transition-colors cursor-pointer"
+            style={{ pointerEvents: "stroke" }}
             onClick={() => onConnectionDelete(connection.id)}
           />
-          {/* Connection arrowhead */}
+          {/* Arrow */}
           <polygon
-            points={`${targetX * scale + panOffset.x - 6},${
-              targetY * scale + panOffset.y - 3
-            } ${targetX * scale + panOffset.x},${
+            points={`${targetX * scale + panOffset.x - 8},${
+              targetY * scale + panOffset.y - 4
+            } 
+                     ${targetX * scale + panOffset.x},${
               targetY * scale + panOffset.y
-            } ${targetX * scale + panOffset.x - 6},${
-              targetY * scale + panOffset.y + 3
+            } 
+                     ${targetX * scale + panOffset.x - 8},${
+              targetY * scale + panOffset.y + 4
             }`}
-            fill="hsl(var(--primary))"
-          />
-          {/* Source dot */}
-          <circle
-            cx={sourceX * scale + panOffset.x}
-            cy={sourceY * scale + panOffset.y}
-            r={3}
-            fill="hsl(var(--primary))"
+            fill="#3b82f6"
           />
         </g>
       );
@@ -484,11 +523,16 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
         className={`w-full h-full relative transition-all ${
           isOver ? "bg-primary/5" : ""
         } ${isPanning ? "cursor-grabbing" : "cursor-default"}`}
-        onClick={handleCanvasClick}
         onWheel={handleWheel}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
+        onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            onComponentSelect(null);
+            setConnectionMode(null);
+          }
+        }}
         style={{
           backgroundImage: `
             linear-gradient(rgba(120,120,120,0.3) 1px, transparent 1px),
@@ -506,8 +550,10 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
       >
         {/* Connection Lines */}
         <svg
-          className="absolute inset-0 pointer-events-none"
-          style={{ zIndex: 1 }}
+          className="absolute inset-0"
+          style={{ zIndex: 50, pointerEvents: "none" }}
+          width="100%"
+          height="100%"
         >
           {renderConnections()}
 
@@ -519,24 +565,31 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
               );
               if (!sourceComponent) return null;
 
-              const sourcePortY =
-                sourceComponent.position.y +
-                45 +
-                connectionMode.sourcePort * 20;
               const sourceX =
-                sourceComponent.position.x + sourceComponent.size.width;
-              const sourceY = sourcePortY;
+                (sourceComponent.position.x + sourceComponent.size.width) *
+                  scale +
+                panOffset.x;
+              const sourceY =
+                (sourceComponent.position.y + sourceComponent.size.height / 2) *
+                  scale +
+                panOffset.y;
+
+              console.log("🎯 Preview line:", {
+                sourceX,
+                sourceY,
+                mouseX: mousePos.x,
+                mouseY: mousePos.y,
+              });
 
               return (
                 <path
-                  d={`M ${sourceX * scale + panOffset.x} ${
-                    sourceY * scale + panOffset.y
-                  } L ${mousePos.x} ${mousePos.y}`}
-                  stroke="hsl(var(--primary))"
-                  strokeWidth={2}
-                  strokeDasharray="5,5"
+                  d={`M ${sourceX} ${sourceY} L ${mousePos.x} ${mousePos.y}`}
+                  stroke="#f59e0b"
+                  strokeWidth={5}
+                  strokeDasharray="10,5"
                   fill="none"
-                  opacity={0.7}
+                  opacity={1}
+                  style={{ pointerEvents: "none" }}
                 />
               );
             })()}
@@ -556,10 +609,22 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
               onMove={onComponentMove}
               onPortClick={handlePortClick}
               connections={connections}
+              connectionMode={connectionMode}
               scale={scale}
             />
           ))}
         </div>
+
+        {/* Connection Mode Indicator */}
+        {connectionMode?.active && (
+          <div className="absolute top-4 left-4 z-20 bg-orange-500 text-white px-4 py-2 rounded-lg shadow-lg animate-pulse">
+            <div className="text-sm font-medium">🔗 Connection Mode</div>
+            <div className="text-xs opacity-90">
+              Click an input port to connect
+            </div>
+            <div className="text-xs opacity-75">Press ESC to cancel</div>
+          </div>
+        )}
 
         {/* Empty State */}
         {components.length === 0 && (
@@ -576,22 +641,6 @@ const ApiCanvas: React.FC<ApiCanvasProps> = ({
                 flow. Connect components to define the data flow.
               </p>
             </div>
-          </div>
-        )}
-
-        {/* Connection Mode Indicator */}
-        {connectionMode?.active && (
-          <div className="absolute top-4 left-4 z-20 bg-orange-500 text-white px-3 py-2 rounded-lg shadow-lg pointer-events-none animate-pulse">
-            <div className="text-sm font-medium">🔗 Connecting...</div>
-            <div className="text-xs opacity-90">
-              Click an input port to complete connection
-            </div>
-            <button
-              className="text-xs underline mt-1 pointer-events-auto"
-              onClick={() => setConnectionMode(null)}
-            >
-              Cancel (ESC)
-            </button>
           </div>
         )}
 

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
 import { Card, CardContent } from "@/components/ui/card";
-import ApiBuilder from "@/components/api-builder/ApiBuilder";
+import FlowBuilder from "@/components/flow/FlowBuilder";
 
 interface ProjectData {
   id: string;
@@ -66,7 +66,7 @@ const ProjectEditorPage = () => {
       </SignedOut>
 
       <SignedIn>
-        <ApiBuilder
+        <FlowBuilder
           projectName={project.name}
           onBack={handleBack}
           onSave={handleSave}
