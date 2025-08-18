@@ -52,7 +52,11 @@ service /api/projects on httpListener {
             databaseConfig.username, 
             databaseConfig.password, 
             databaseConfig.database, 
-            databaseConfig.port
+            databaseConfig.port,
+            connectionPool = {
+                maxOpenConnections: 30,
+                maxConnectionLifeTime: 60000
+            }
         );
         log:printInfo("Successfully connected to the database.");
     }
