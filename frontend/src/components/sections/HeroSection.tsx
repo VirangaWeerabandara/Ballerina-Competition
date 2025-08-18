@@ -1,8 +1,20 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Code, Database, Zap } from "lucide-react";
+import { Code, Zap } from "lucide-react";
+import { useAsgardeo } from "@asgardeo/react";
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const { isSignedIn, signIn } = useAsgardeo();
+  const navigate = useNavigate();
+
+  const handleStartBuilding = () => {
+    if (isSignedIn) {
+      navigate("/projects");
+    } else {
+      signIn();
+    }
+  };
   return (
     <section
       id="hero"
@@ -39,13 +51,13 @@ const HeroSection = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
-            <Button size="lg" className="text-lg px-8 py-6 animate-glow">
+            <Button
+              size="lg"
+              className="text-lg px-8 py-6 animate-glow"
+              onClick={handleStartBuilding}
+            >
               <Code className="w-5 h-5 mr-2" />
               Start Building
-            </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-6">
-              <Database className="w-5 h-5 mr-2" />
-              View Docs
             </Button>
           </div>
 

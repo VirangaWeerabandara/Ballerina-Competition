@@ -7,12 +7,13 @@ import {
   SignedOut,
   SignInButton,
   SignOutButton,
+  useAsgardeo,
 } from "@asgardeo/react";
 
 const NavigationBar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
+  const { user, signIn, signOut, isSignedIn, isLoading } = useAsgardeo();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -29,14 +30,6 @@ const NavigationBar = () => {
       element.scrollIntoView({ behavior: "smooth" });
       setIsMobileMenuOpen(false);
     }
-  };
-
-  const handleSignUp = () => {
-    navigate("/signup");
-  };
-
-  const handleSignIn = () => {
-    navigate("/login");
   };
 
   return (
@@ -80,27 +73,37 @@ const NavigationBar = () => {
             </button>
           </div>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth Buttons - Asgardeo */}
           <div className="hidden md:flex items-center space-x-4">
-            <SignedIn>
-              <SignOutButton />
-            </SignedIn>
-            <SignedOut>
-              <SignInButton  />
-            </SignedOut>
-            <Button
-              variant="ghost"
-              onClick={handleSignIn}
-              className="text-muted-foreground hover:text-primary"
-            >
-              Sign In
-            </Button>
-            <Button
-              onClick={handleSignUp}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Sign Up
-            </Button>
+            {isLoading ? (
+              <div className="text-muted-foreground">Loading...</div>
+            ) : isSignedIn ? (
+              <>
+                {user?.photourl && (
+                  <img
+                    src={user.photourl}
+                    alt={user.username}
+                    className="h-8 w-8 rounded-full border"
+                  />
+                )}
+                <span className="text-muted-foreground font-medium">
+                  Welcome back {user?.givenname || user?.username}
+                </span>
+                <Button
+                  onClick={() => signOut()}
+                  className="bg-transparent border border-primary/90 text-primary hover:bg-primary/10 transition-colors"
+                >
+                  Logout
+                </Button>
+              </>
+            ) : (
+              <Button
+                onClick={() => signIn()}
+                className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                Login
+              </Button>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -140,19 +143,35 @@ const NavigationBar = () => {
               </button>
               <hr className="border-border/50" />
               <div className="flex flex-col space-y-2">
-                <Button
-                  variant="ghost"
-                  onClick={handleSignIn}
-                  className="text-muted-foreground hover:text-primary justify-start"
-                >
-                  Sign In
-                </Button>
-                <Button
-                  onClick={handleSignUp}
-                  className="bg-primary hover:bg-primary/90 text-primary-foreground justify-start"
-                >
-                  Sign Up
-                </Button>
+                {isLoading ? (
+                  <div className="text-muted-foreground">Loading...</div>
+                ) : isSignedIn ? (
+                  <>
+                    {user?.photourl && (
+                      <img
+                        src={user.photourl}
+                        alt={user.username}
+                        className="h-8 w-8 rounded-full border mb-1"
+                      />
+                    )}
+                    <span className="text-muted-foreground font-medium mb-1">
+                      Welcome back {user?.givenname || user?.username}
+                    </span>
+                    <Button
+                      onClick={() => signOut()}
+                      className="bg-transparent border border-primary/90 text-primary hover:bg-primary/10 justify-start transition-colors"
+                    >
+                      Login
+                    </Button>
+                  </>
+                ) : (
+                  <Button
+                    onClick={() => signIn()}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground justify-start"
+                  >
+                    Logout
+                  </Button>
+                )}
               </div>
             </div>
           </div>

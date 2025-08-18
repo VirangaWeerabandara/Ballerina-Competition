@@ -13,7 +13,7 @@ import {
   LogOut,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
-import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
+import { SignedIn, SignedOut, SignInButton, useAsgardeo } from "@asgardeo/react";
 import CreateProjectModal, {
   ProjectType,
 } from "@/components/project/CreateProjectModal";
@@ -31,6 +31,8 @@ const ProjectsPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const navigate = useNavigate();
+  const {signOut } = useAsgardeo();
+
 
   const mockProjects: Project[] = [
     {
@@ -151,13 +153,11 @@ const ProjectsPage = () => {
                 </div>
 
                 <div className="flex items-center space-x-4">
-                  <Button variant="ghost" size="sm">
-                    <User className="h-4 w-4 mr-2" />
-                    Profile
-                  </Button>
-                  <Button variant="ghost" size="sm">
-                    <LogOut className="h-4 w-4 mr-2" />
-                    Sign Out
+                  <Button
+                    onClick={() => signOut()}
+                    className="bg-transparent border border-primary/90 text-primary hover:bg-primary/10 transition-colors"
+                  >
+                    Logout
                   </Button>
                 </div>
               </div>
