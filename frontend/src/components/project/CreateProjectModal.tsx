@@ -34,10 +34,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
   onClose,
   onSubmit,
 }) => {
-  const [projectName, setProjectName] = useState("");
   const [selectedType, setSelectedType] = useState<ProjectType | null>(null);
-  const [selectedTemplate, setSelectedTemplate] = useState("");
-  const [isShared, setIsShared] = useState(false);
 
   const projectTypes: ProjectTemplate[] = [
     {
@@ -76,79 +73,16 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
     },
   ];
 
-  const templates = {
-    "rest-api": [
-      {
-        id: "basic-crud",
-        name: "Basic CRUD API",
-        description: "Simple Create, Read, Update, Delete operations",
-      },
-      {
-        id: "auth-api",
-        name: "Authentication API",
-        description: "User authentication with JWT tokens",
-      },
-      {
-        id: "ecommerce-api",
-        name: "E-commerce API",
-        description: "Product catalog and order management",
-      },
-      {
-        id: "blog-api",
-        name: "Blog API",
-        description: "Posts, comments, and user management",
-      },
-    ],
-    graphql: [
-      {
-        id: "basic-schema",
-        name: "Basic Schema",
-        description: "Simple queries and mutations",
-      },
-      {
-        id: "social-media",
-        name: "Social Media Schema",
-        description: "Users, posts, likes, and comments",
-      },
-      {
-        id: "ecommerce-schema",
-        name: "E-commerce Schema",
-        description: "Products, orders, and inventory",
-      },
-    ],
-    websocket: [
-      {
-        id: "chat-server",
-        name: "Chat Server",
-        description: "Real-time messaging application",
-      },
-      {
-        id: "game-server",
-        name: "Game Server",
-        description: "Multiplayer game backend",
-      },
-      {
-        id: "notification-server",
-        name: "Notification Server",
-        description: "Push notifications system",
-      },
-    ],
-  };
-
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (projectName && selectedType && selectedTemplate) {
+    if (selectedType) {
       onSubmit({
-        name: projectName,
+        name: "Untitled Project",
         type: selectedType,
-        template: selectedTemplate,
-        isShared,
+        template: "basic-crud",
+        isShared: false,
       });
-      // Reset form
-      setProjectName("");
       setSelectedType(null);
-      setSelectedTemplate("");
-      setIsShared(false);
     }
   };
 
@@ -166,18 +100,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
 
         <CardContent className="space-y-6">
           <form onSubmit={handleSubmit}>
-            {/* Project Name */}
-            <div className="space-y-2">
-              <Label htmlFor="project-name">Project Name</Label>
-              <Input
-                id="project-name"
-                placeholder="Enter project name..."
-                value={projectName}
-                onChange={(e) => setProjectName(e.target.value)}
-                required
-              />
-            </div>
-
             {/* Project Type Selection */}
             <div className="space-y-4">
               <Label>Select Project Type</Label>
@@ -221,43 +143,6 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               </div>
             </div>
 
-            {/* Template Selection */}
-            {selectedType && (
-              <div className="space-y-4">
-                <Label>Choose Template</Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  {templates[selectedType].map((template) => (
-                    <Card
-                      key={template.id}
-                      className={`cursor-pointer transition-all border ${
-                        selectedTemplate === template.id
-                          ? "border-primary bg-primary/5"
-                          : "border-border hover:border-primary/50"
-                      }`}
-                      onClick={() => setSelectedTemplate(template.id)}
-                    >
-                      <CardContent className="p-4">
-                        <h4 className="font-medium mb-1">{template.name}</h4>
-                        <p className="text-sm text-muted-foreground">
-                          {template.description}
-                        </p>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Shared Switch */}
-            <div className="flex items-center space-x-3 pt-2">
-              <Switch
-                id="is-shared"
-                checked={isShared}
-                onCheckedChange={setIsShared}
-              />
-              <Label htmlFor="is-shared">Public</Label>
-            </div>
-
             {/* Action Buttons */}
             <div className="flex justify-end space-x-3 pt-6">
               <Button type="button" variant="outline" onClick={onClose}>
@@ -265,7 +150,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
               </Button>
               <Button
                 type="submit"
-                disabled={!projectName || !selectedType || !selectedTemplate}
+                disabled={!selectedType}
                 className="bg-primary hover:bg-primary/90"
               >
                 <Zap className="w-4 h-4 mr-2" />

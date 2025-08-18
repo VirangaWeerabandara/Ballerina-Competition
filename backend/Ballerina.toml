@@ -10,4 +10,4 @@ observabilityIncluded = true
 [[platform.java21.dependency]]
 groupId = "org.postgresql"
 artifactId = "postgresql"
-version = "42.7.2"
+version = "42.6.1"

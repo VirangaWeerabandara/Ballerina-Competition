@@ -94,6 +94,8 @@ service /api/projects on httpListener {
             "message": "Projects fetched successfully",
             "projects": projects
         });
+
+        check  resultStream.close();
     }
 
     // 2. Get all shared projects (isShared = true)
@@ -185,6 +187,7 @@ service /api/projects on httpListener {
             log:printError("Error occurred while creating project", result);
             check caller->respond({"error": "Failed to create project"});
         }
+        
     }
 
     // 4. Update an existing project
@@ -370,7 +373,11 @@ service /api/projects on httpListener {
         } else {
             check caller->respond({"error": "Project not found"});
         }
+
+        check resultStream.close();
     }
+
+    
 }
 
 // Main service for health check

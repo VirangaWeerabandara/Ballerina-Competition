@@ -72,8 +72,8 @@ const APINode: React.FC<NodeProps<APINodeData>> = ({ data, id, selected }) => {
 
   return (
     <Card
-      className={`min-w-[200px] transition-all duration-200 ${
-        selected ? "ring-2 ring-blue-500 shadow-lg" : "hover:shadow-md"
+      className={`min-w-[200px] transition-all duration-200 bg-white/60 backdrop-blur-2xl shadow-lg border-none ${
+        selected ? "ring-2 ring-blue-500" : "hover:shadow-md"
       }`}
     >
       <CardContent className="p-4">

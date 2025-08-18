@@ -120,8 +120,8 @@ const FlowPalette: React.FC = () => {
   const allCategories = getComponentsByCategory();
 
   return (
-    <div className="w-80 bg-card border-r border-border h-full flex flex-col">
-      <div className="p-4 border-b border-border">
+    <div className="w-80 bg-white/60 h-full flex flex-col backdrop-blur-2xl shadow-lg">
+      <div className="p-4">
         <h2 className="text-lg font-semibold">API Components</h2>
         <p className="text-sm text-muted-foreground">
           Drag components to the canvas
