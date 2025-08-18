@@ -60,97 +60,172 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   useEffect(() => {
     if (!isSimulating) return;
 
-    const interval = setInterval(() => {
-      // Simulate random activity
+    // Run one simulation cycle immediately
+    const runSimulation = () => {
       if (blocks.length > 0) {
-        const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
-        const logTypes: SimulationLog["type"][] = [
-          "info",
-          "success",
-          "warning",
-        ];
-        const randomType =
-          logTypes[Math.floor(Math.random() * logTypes.length)];
+        // Simulate flow through all connected blocks
+        const entryPoints = blocks.filter((block) =>
+          connections.every((conn) => conn.toBlockId !== block.instanceId)
+        );
 
-        const messages = {
-          "get-endpoint": [
-            "Received GET request",
-            "Processing query parameters",
-            "Returning response",
-          ],
-          "post-endpoint": [
-            "Received POST request",
-            "Validating request body",
-            "Creating new resource",
-          ],
-          database: [
-            "Executing query",
-            "Connection established",
-            "Data retrieved successfully",
-          ],
-          auth: [
-            "Validating token",
-            "User authenticated",
-            "Permissions verified",
-          ],
-          "websocket-server": [
-            "New connection established",
-            "Broadcasting message",
-            "Client disconnected",
-          ],
-        };
+        if (entryPoints.length > 0) {
+          // Start from entry points and simulate flow
+          entryPoints.forEach((entryBlock, index) => {
+            setTimeout(() => {
+              // Simulate entry point activity
+              const entryLog: SimulationLog = {
+                id: `log_${Date.now()}_entry_${index}`,
+                timestamp: new Date(),
+                blockId: entryBlock.instanceId,
+                blockName: entryBlock.name,
+                type: "info",
+                message: `Starting flow from ${entryBlock.name}`,
+              };
+              setLogs((prev) => [entryLog, ...prev.slice(0, 99)]);
 
-        const blockMessages = messages[
-          randomBlock.id as keyof typeof messages
-        ] || ["Processing..."];
-        const randomMessage =
-          blockMessages[Math.floor(Math.random() * blockMessages.length)];
+              // Update active blocks
+              setActiveBlocks(
+                (prev) => new Set([...prev, entryBlock.instanceId])
+              );
+              setTimeout(() => {
+                setActiveBlocks((prev) => {
+                  const newSet = new Set(prev);
+                  newSet.delete(entryBlock.instanceId);
+                  return newSet;
+                });
+              }, 1000);
 
-        const newLog: SimulationLog = {
-          id: `log_${Date.now()}`,
-          timestamp: new Date(),
-          blockId: randomBlock.instanceId,
-          blockName: randomBlock.name,
-          type: randomType,
-          message: randomMessage,
-          data:
-            randomType === "success"
-              ? { responseTime: Math.floor(Math.random() * 200) + 50 }
-              : undefined,
-        };
-
-        setLogs((prev) => [newLog, ...prev.slice(0, 99)]); // Keep last 100 logs
-
-        // Update active blocks
-        setActiveBlocks((prev) => new Set([...prev, randomBlock.instanceId]));
-        setTimeout(() => {
-          setActiveBlocks((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(randomBlock.instanceId);
-            return newSet;
+              // Simulate flow through connections
+              simulateFlow(entryBlock.instanceId, 0);
+            }, index * 500);
           });
-        }, 1000);
+        } else {
+          // No connections, just simulate random activity
+          const randomBlock = blocks[Math.floor(Math.random() * blocks.length)];
+          const logTypes: SimulationLog["type"][] = [
+            "info",
+            "success",
+            "warning",
+          ];
+          const randomType =
+            logTypes[Math.floor(Math.random() * logTypes.length)];
+
+          const messages = {
+            "get-endpoint": [
+              "Received GET request",
+              "Processing query parameters",
+              "Returning response",
+            ],
+            "post-endpoint": [
+              "Received POST request",
+              "Validating request body",
+              "Creating new resource",
+            ],
+            database: [
+              "Executing query",
+              "Connection established",
+              "Data retrieved successfully",
+            ],
+            auth: [
+              "Validating token",
+              "User authenticated",
+              "Permissions verified",
+            ],
+          };
+
+          const blockMessages = messages[
+            randomBlock.id as keyof typeof messages
+          ] || ["Processing..."];
+          const randomMessage =
+            blockMessages[Math.floor(Math.random() * blockMessages.length)];
+
+          const newLog: SimulationLog = {
+            id: `log_${Date.now()}`,
+            timestamp: new Date(),
+            blockId: randomBlock.instanceId,
+            blockName: randomBlock.name,
+            type: randomType,
+            message: randomMessage,
+            data:
+              randomType === "success"
+                ? { responseTime: Math.floor(Math.random() * 200) + 50 }
+                : undefined,
+          };
+
+          setLogs((prev) => [newLog, ...prev.slice(0, 99)]);
+          setActiveBlocks((prev) => new Set([...prev, randomBlock.instanceId]));
+          setTimeout(() => {
+            setActiveBlocks((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(randomBlock.instanceId);
+              return newSet;
+            });
+          }, 1000);
+        }
 
         // Update stats
         setSimulationStats((prev) => ({
           ...prev,
           totalRequests: prev.totalRequests + 1,
-          successfulRequests:
-            randomType === "success"
-              ? prev.successfulRequests + 1
-              : prev.successfulRequests,
-          failedRequests:
-            randomType === "error"
-              ? prev.failedRequests + 1
-              : prev.failedRequests,
+          successfulRequests: prev.successfulRequests + 1,
           averageResponseTime: Math.floor(Math.random() * 150) + 75,
           uptime: prev.uptime + 1,
         }));
       }
-    }, 1500);
+    };
 
-    return () => clearInterval(interval);
-  }, [isSimulating, blocks]);
+    // Run simulation once
+    runSimulation();
+
+    // Stop simulation after one cycle
+    setTimeout(() => {
+      onStop();
+    }, 3000);
+  }, [isSimulating, blocks, connections]);
+
+  // Helper function to simulate flow through connections
+  const simulateFlow = (blockId: string, depth: number) => {
+    if (depth > 5) return; // Prevent infinite loops
+
+    const outgoingConnections = connections.filter(
+      (conn) => conn.fromBlockId === blockId
+    );
+
+    outgoingConnections.forEach((connection, index) => {
+      setTimeout(() => {
+        const targetBlock = blocks.find(
+          (b) => b.instanceId === connection.toBlockId
+        );
+        if (targetBlock) {
+          const flowLog: SimulationLog = {
+            id: `log_${Date.now()}_flow_${depth}_${index}`,
+            timestamp: new Date(),
+            blockId: targetBlock.instanceId,
+            blockName: targetBlock.name,
+            type: "success",
+            message: `Processing data from ${
+              blocks.find((b) => b.instanceId === connection.fromBlockId)?.name
+            }`,
+            data: { responseTime: Math.floor(Math.random() * 200) + 50 },
+          };
+          setLogs((prev) => [flowLog, ...prev.slice(0, 99)]);
+
+          // Update active blocks
+          setActiveBlocks((prev) => new Set([...prev, targetBlock.instanceId]));
+          setTimeout(() => {
+            setActiveBlocks((prev) => {
+              const newSet = new Set(prev);
+              newSet.delete(targetBlock.instanceId);
+              return newSet;
+            });
+          }, 1000);
+
+          // Continue flow
+          simulateFlow(targetBlock.instanceId, depth + 1);
+        }
+      }, (depth + 1) * 300);
+    });
+  };
 
   const getLogIcon = (type: SimulationLog["type"]) => {
     switch (type) {
@@ -165,18 +240,18 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
     }
   };
 
-  const getBlockIcon = (blockId: string) => {
+  const getBlockIcon = (blockId: string, className = "w-4 h-4") => {
     if (
       blockId.includes("endpoint") ||
       blockId.includes("get") ||
       blockId.includes("post")
     ) {
-      return <Globe className="w-4 h-4" />;
+      return <Globe className={className} />;
     }
     if (blockId.includes("database")) {
-      return <Database className="w-4 h-4" />;
+      return <Database className={className} />;
     }
-    return <Zap className="w-4 h-4" />;
+    return <Zap className={className} />;
   };
 
   const handleReset = () => {
@@ -348,10 +423,8 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
                   >
                     <CardContent className="p-3">
                       <div className="flex items-center space-x-3">
-                        <div
-                          className={`w-8 h-8 rounded ${block.color} text-white flex items-center justify-center`}
-                        >
-                          {getBlockIcon(block.id)}
+                        <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border border-border">
+                          {getBlockIcon(block.id, "w-5 h-5 text-foreground")}
                         </div>
                         <div className="flex-1">
                           <div className="font-medium text-sm">
