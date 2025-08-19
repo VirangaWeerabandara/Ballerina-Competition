@@ -28,6 +28,13 @@ import CreateProjectModal, {
   ProjectType,
 } from "@/components/project/CreateProjectModal";
 
+import {
+  restApiExamples,
+  websocketExamples,
+  graphqlExamples,
+  ExampleProject,
+} from "../data/api-components";
+
 interface Project {
   id: string;
   title: string;
@@ -35,6 +42,7 @@ interface Project {
   category: string;
   date: string;
   endpoints: number;
+  type?: "rest-api" | "websocket" | "graphql";
 }
 
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL as string;
@@ -113,59 +121,11 @@ const ProjectsPage = () => {
     }
   };
 
-  // Example projects (different from user's projects)
-  const exampleProjects: Project[] = [
-    {
-      id: "example_chatbot",
-      title: "Chatbot API",
-      description: "Conversational AI API for customer support and FAQs.",
-      category: "AI",
-      date: "Example",
-      endpoints: 10,
-    },
-    {
-      id: "example_weather",
-      title: "Weather Data Service",
-      description: "REST API for real-time and historical weather data.",
-      category: "Data",
-      date: "Example",
-      endpoints: 2,
-    },
-    {
-      id: "example_blog",
-      title: "Blog Platform API",
-      description: "API for posts, comments, and user profiles in a blog.",
-      category: "Content",
-      date: "Example",
-      endpoints: 3,
-    },
-    {
-      id: "example_finance",
-      title: "Enterprise Finance Suite",
-      description:
-        "A complex API for multi-user, multi-account finance management: transactions, accounts, budgets, analytics, audit, and admin endpoints with layered middleware and database integration.",
-      category: "Finance",
-      date: "Example",
-      endpoints: 12,
-    },
-    {
-      id: "example_iot",
-      title: "IoT Device Manager",
-      description:
-        "Manage IoT devices, telemetry, and alerts. Includes endpoints for device registration, data, and control.",
-      category: "IoT",
-      date: "Example",
-      endpoints: 4,
-    },
-    {
-      id: "example_social",
-      title: "Social Media API",
-      description:
-        "Endpoints for posts, likes, follows, and notifications in a social network.",
-      category: "Social",
-      date: "Example",
-      endpoints: 5,
-    },
+  // Example projects (grouped by type)
+  const exampleProjects: ExampleProject[] = [
+    ...restApiExamples,
+    ...websocketExamples,
+    ...graphqlExamples,
   ];
 
   // Fetch projects for the logged-in user and community projects
@@ -248,6 +208,11 @@ const ProjectsPage = () => {
       project.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
       project.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Example projects grouped by type for rendering
+  const restApiExampleList = restApiExamples;
+  const websocketExampleList = websocketExamples;
+  const graphqlExampleList = graphqlExamples;
 
   const filteredCommunityProjects = communityProjects.filter(
     (project) =>
@@ -785,6 +750,20 @@ const ProjectsPage = () => {
       </SignedIn>
     </>
   );
+
+  // ...existing code...
+
+  // In your JSX, replace the example projects section with:
+  // (This is a code hint for the developer, not actual code)
+  //
+  // <div>
+  //   <h3>REST API</h3>
+  //   {restApiExampleList.map(...)}
+  //   <h3>WebSocket</h3>
+  //   {websocketExampleList.map(...)}
+  //   <h3>GraphQL</h3>
+  //   {graphqlExampleList.map(...)}
+  // </div>
 };
 
 export default ProjectsPage;

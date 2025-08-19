@@ -1,5 +1,90 @@
 import { APIComponent, ComponentType } from "@/types/api-builder";
 
+export interface ExampleProject {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  date: string;
+  endpoints: number;
+  type: "rest-api" | "websocket" | "graphql";
+}
+
+export const restApiExamples: ExampleProject[] = [
+  {
+    id: "example_chatbot",
+    title: "Chatbot API",
+    description: "Conversational AI API for customer support and FAQs.",
+    category: "AI",
+    date: "Example",
+    endpoints: 10,
+    type: "rest-api",
+  },
+  {
+    id: "example_weather",
+    title: "Weather Data Service",
+    description: "REST API for real-time and historical weather data.",
+    category: "Data",
+    date: "Example",
+    endpoints: 2,
+    type: "rest-api",
+  },
+  {
+    id: "example_blog",
+    title: "Blog Platform API",
+    description: "API for posts, comments, and user profiles in a blog.",
+    category: "Content",
+    date: "Example",
+    endpoints: 3,
+    type: "rest-api",
+  },
+  {
+    id: "example_finance",
+    title: "Enterprise Finance Suite",
+    description:
+      "A complex API for multi-user, multi-account finance management: transactions, accounts, budgets, analytics, audit, and admin endpoints with layered middleware and database integration.",
+    category: "Finance",
+    date: "Example",
+    endpoints: 12,
+    type: "rest-api",
+  },
+  {
+    id: "example_social",
+    title: "Social Media API",
+    description:
+      "Endpoints for posts, likes, follows, and notifications in a social network.",
+    category: "Social",
+    date: "Example",
+    endpoints: 5,
+    type: "rest-api",
+  },
+];
+
+export const websocketExamples: ExampleProject[] = [
+  {
+    id: "example_websocket_chat",
+    title: "Real-time Chat WebSocket API",
+    description:
+      "WebSocket API for real-time chat with rooms, broadcast, and connection management.",
+    category: "Chat",
+    date: "Example",
+    endpoints: 5,
+    type: "websocket",
+  },
+];
+
+export const graphqlExamples: ExampleProject[] = [
+  {
+    id: "example_graphql_social",
+    title: "Social Media GraphQL API",
+    description:
+      "GraphQL API for social media with queries, mutations, and schema definition.",
+    category: "GraphQL",
+    date: "Example",
+    endpoints: 6,
+    type: "graphql",
+  },
+];
 export const REST_API_COMPONENTS: APIComponent[] = [
   // Endpoints
   {
