@@ -1,0 +1,1054 @@
+import { APIComponent, ComponentType } from "@/types/api-builder";
+
+export interface ExampleProject {
+  id: string;
+  title: string;
+  description: string;
+  category: string;
+  date: string;
+  endpoints: number;
+  type: "rest-api" | "websocket" | "graphql";
+}
+
+export const restApiExamples: ExampleProject[] = [
+  {
+    id: "example_chatbot",
+    title: "Chatbot API",
+    description: "Conversational AI API for customer support and FAQs.",
+    category: "AI",
+    date: "Example",
+    endpoints: 10,
+    type: "rest-api",
+  },
+  {
+    id: "example_weather",
+    title: "Weather Data Service",
+    description: "REST API for real-time and historical weather data.",
+    category: "Data",
+    date: "Example",
+    endpoints: 2,
+    type: "rest-api",
+  },
+  {
+    id: "example_blog",
+    title: "Blog Platform API",
+    description: "API for posts, comments, and user profiles in a blog.",
+    category: "Content",
+    date: "Example",
+    endpoints: 3,
+    type: "rest-api",
+  },
+  {
+    id: "example_finance",
+    title: "Enterprise Finance Suite",
+    description:
+      "A complex API for multi-user, multi-account finance management: transactions, accounts, budgets, analytics, audit, and admin endpoints with layered middleware and database integration.",
+    category: "Finance",
+    date: "Example",
+    endpoints: 12,
+    type: "rest-api",
+  },
+  {
+    id: "example_social",
+    title: "Social Media API",
+    description:
+      "Endpoints for posts, likes, follows, and notifications in a social network.",
+    category: "Social",
+    date: "Example",
+    endpoints: 5,
+    type: "rest-api",
+  },
+];
+
+export const websocketExamples: ExampleProject[] = [
+  {
+    id: "example_websocket_chat",
+    title: "Real-time Chat WebSocket API",
+    description:
+      "WebSocket API for real-time chat with rooms, broadcast, and connection management.",
+    category: "Chat",
+    date: "Example",
+    endpoints: 5,
+    type: "websocket",
+  },
+];
+
+export const graphqlExamples: ExampleProject[] = [
+  {
+    id: "example_graphql_social",
+    title: "Social Media GraphQL API",
+    description:
+      "GraphQL API for social media with queries, mutations, and schema definition.",
+    category: "GraphQL",
+    date: "Example",
+    endpoints: 6,
+    type: "graphql",
+  },
+];
+export const REST_API_COMPONENTS: APIComponent[] = [
+  // Endpoints
+  {
+    id: "endpoint-get",
+    type: "endpoint-get",
+    name: "GET Endpoint",
+    description: "Handle HTTP GET requests",
+    category: "Endpoints",
+    icon: "Download",
+    color: "text-primary-blue",
+    bgColor: "bg-primary-blue/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/api/resource",
+      description: "Retrieve data",
+    },
+  },
+  {
+    id: "endpoint-post",
+    type: "endpoint-post",
+    name: "POST Endpoint",
+    description: "Handle HTTP POST requests",
+    category: "Endpoints",
+    icon: "Upload",
+    color: "text-primary-green",
+    bgColor: "bg-primary-green/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/api/resource",
+      description: "Create new data",
+    },
+  },
+  {
+    id: "endpoint-put",
+    type: "endpoint-put",
+    name: "PUT Endpoint",
+    description: "Handle HTTP PUT requests",
+    category: "Endpoints",
+    icon: "RefreshCw",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/api/resource/:id",
+      description: "Update existing data",
+    },
+  },
+  {
+    id: "endpoint-delete",
+    type: "endpoint-delete",
+    name: "DELETE Endpoint",
+    description: "Handle HTTP DELETE requests",
+    category: "Endpoints",
+    icon: "Trash2",
+    color: "text-primary-red",
+    bgColor: "bg-primary-red/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/api/resource/:id",
+      description: "Delete data",
+    },
+  },
+  {
+    id: "endpoint-patch",
+    type: "endpoint-patch",
+    name: "PATCH Endpoint",
+    description: "Handle HTTP PATCH requests",
+    category: "Endpoints",
+    icon: "Edit",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/api/resource/:id",
+      description: "Partial update",
+    },
+  },
+
+  // Middleware
+  {
+    id: "middleware-auth",
+    type: "middleware-auth",
+    name: "Authentication",
+    description: "Validate user authentication",
+    category: "Middleware",
+    icon: "Shield",
+    color: "text-primary-indigo",
+    bgColor: "bg-primary-indigo/10",
+    inputs: 1,
+    outputs: 2, // success, failure
+    config: {
+      type: "JWT",
+      secret: "your-secret-key",
+    },
+  },
+  {
+    id: "middleware-cors",
+    type: "middleware-cors",
+    name: "CORS",
+    description: "Handle Cross-Origin Resource Sharing",
+    category: "Middleware",
+    icon: "Globe",
+    color: "text-primary-cyan",
+    bgColor: "bg-primary-cyan/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    },
+  },
+  {
+    id: "middleware-rate-limit",
+    type: "middleware-rate-limit",
+    name: "Rate Limiting",
+    description: "Limit request frequency",
+    category: "Middleware",
+    icon: "Timer",
+    color: "text-primary-yellow",
+    bgColor: "bg-primary-yellow/10",
+    inputs: 1,
+    outputs: 2, // allowed, blocked
+    config: {
+      windowMs: 15 * 60 * 1000, // 15 minutes
+      max: 100, // limit each IP to 100 requests per windowMs
+    },
+  },
+  {
+    id: "middleware-logging",
+    type: "middleware-logging",
+    name: "Request Logging",
+    description: "Log all requests and responses",
+    category: "Middleware",
+    icon: "FileText",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      level: "info",
+      format: "combined",
+    },
+  },
+
+  // Database
+  {
+    id: "database",
+    type: "database",
+    name: "Database",
+    description: "Data storage and retrieval",
+    category: "Database",
+    icon: "Database",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "PostgreSQL",
+      connection: "postgresql://localhost:5432/mydb",
+    },
+  },
+  {
+    id: "cache",
+    type: "cache",
+    name: "Cache",
+    description: "Cache frequently accessed data",
+    category: "Database",
+    icon: "Zap",
+    color: "text-primary-amber",
+    bgColor: "bg-primary-amber/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Redis",
+      ttl: 3600,
+    },
+  },
+
+  // External
+  {
+    id: "external-api",
+    type: "external-api",
+    name: "External API",
+    description: "Call external APIs",
+    category: "External",
+    icon: "ExternalLink",
+    color: "text-primary-violet",
+    bgColor: "bg-primary-violet/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      url: "https://api.external.com",
+      method: "GET",
+      headers: {},
+    },
+  },
+  {
+    id: "webhook",
+    type: "webhook",
+    name: "Webhook",
+    description: "Send webhook notifications",
+    category: "External",
+    icon: "Webhook",
+    color: "text-primary-pink",
+    bgColor: "bg-primary-pink/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      url: "https://webhook.example.com",
+      method: "POST",
+    },
+  },
+
+  // Processing
+  {
+    id: "validation",
+    type: "validation",
+    name: "Data Validator",
+    description: "Validate request data",
+    category: "Processing",
+    icon: "CheckCircle",
+    color: "text-primary-emerald",
+    bgColor: "bg-primary-emerald/10",
+    inputs: 1,
+    outputs: 2, // valid, invalid
+    config: {
+      schema: "JSON Schema",
+      strict: true,
+    },
+  },
+  {
+    id: "transformation",
+    type: "transformation",
+    name: "Data Transformer",
+    description: "Transform data format",
+    category: "Processing",
+    icon: "RotateCcw",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      format: "JSON to XML",
+    },
+  },
+
+  // Storage
+  {
+    id: "file-storage",
+    type: "file-storage",
+    name: "File Storage",
+    description: "Store and manage files",
+    category: "Storage",
+    icon: "HardDrive",
+    color: "text-primary-sky",
+    bgColor: "bg-primary-sky/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "AWS S3",
+      bucket: "my-bucket",
+    },
+  },
+
+  // Communication
+  {
+    id: "email-service",
+    type: "email-service",
+    name: "Email Service",
+    description: "Send email notifications",
+    category: "Communication",
+    icon: "Mail",
+    color: "text-primary-rose",
+    bgColor: "bg-primary-rose/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "SendGrid",
+      from: "noreply@example.com",
+    },
+  },
+  {
+    id: "notification",
+    type: "notification",
+    name: "Push Notification",
+    description: "Send push notifications",
+    category: "Communication",
+    icon: "Bell",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "FCM",
+      topic: "general",
+    },
+  },
+  {
+    id: "queue",
+    type: "queue",
+    name: "Message Queue",
+    description: "Queue messages for processing",
+    category: "Communication",
+    icon: "Layers",
+    color: "text-primary-slate",
+    bgColor: "bg-primary-slate/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "RabbitMQ",
+      queue: "default",
+    },
+  },
+];
+
+export const GRAPHQL_API_COMPONENTS: APIComponent[] = [
+  // GraphQL Endpoints
+  {
+    id: "graphql-endpoint",
+    type: "graphql-endpoint",
+    name: "GraphQL Endpoint",
+    description: "Handle GraphQL queries and mutations",
+    category: "Endpoints",
+    icon: "Database",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/graphql",
+      introspection: true,
+    },
+  },
+  {
+    id: "graphql-playground",
+    type: "graphql-playground",
+    name: "GraphQL Playground",
+    description: "Interactive GraphQL IDE",
+    category: "Endpoints",
+    icon: "Globe",
+    color: "text-primary-indigo",
+    bgColor: "bg-primary-indigo/10",
+    inputs: 0,
+    outputs: 0,
+    config: {
+      path: "/playground",
+      enabled: true,
+    },
+  },
+
+  // GraphQL Resolvers
+  {
+    id: "query-resolver",
+    type: "query-resolver",
+    name: "Query Resolver",
+    description: "Resolve GraphQL queries",
+    category: "Processing",
+    icon: "Download",
+    color: "text-primary-blue",
+    bgColor: "bg-primary-blue/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Query",
+      fields: ["id", "name", "email"],
+    },
+  },
+  {
+    id: "mutation-resolver",
+    type: "mutation-resolver",
+    name: "Mutation Resolver",
+    description: "Resolve GraphQL mutations",
+    category: "Processing",
+    icon: "Upload",
+    color: "text-primary-green",
+    bgColor: "bg-primary-green/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Mutation",
+      operations: ["create", "update", "delete"],
+    },
+  },
+  {
+    id: "subscription-resolver",
+    type: "subscription-resolver",
+    name: "Subscription Resolver",
+    description: "Resolve GraphQL subscriptions",
+    category: "Processing",
+    icon: "Bell",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Subscription",
+      events: ["userCreated", "dataUpdated"],
+    },
+  },
+
+  // GraphQL Schema
+  {
+    id: "schema-definition",
+    type: "schema-definition",
+    name: "Schema Definition",
+    description: "Define GraphQL schema types",
+    category: "Processing",
+    icon: "FileText",
+    color: "text-primary-cyan",
+    bgColor: "bg-primary-cyan/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      types: ["User", "Post", "Comment"],
+      directives: ["@auth", "@cache"],
+    },
+  },
+
+  // Shared infrastructure components (no REST API specific components)
+  {
+    id: "database",
+    type: "database",
+    name: "Database",
+    description: "Data storage and retrieval",
+    category: "Database",
+    icon: "Database",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "PostgreSQL",
+      connection: "postgresql://localhost:5432/mydb",
+    },
+  },
+  {
+    id: "middleware-auth",
+    type: "middleware-auth",
+    name: "Authentication",
+    description: "Validate user authentication",
+    category: "Middleware",
+    icon: "Shield",
+    color: "text-primary-indigo",
+    bgColor: "bg-primary-indigo/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      type: "JWT",
+      secret: "your-secret-key",
+    },
+  },
+  {
+    id: "middleware-cors",
+    type: "middleware-cors",
+    name: "CORS",
+    description: "Handle Cross-Origin Resource Sharing",
+    category: "Middleware",
+    icon: "Globe",
+    color: "text-primary-cyan",
+    bgColor: "bg-primary-cyan/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    },
+  },
+  {
+    id: "middleware-rate-limit",
+    type: "middleware-rate-limit",
+    name: "Rate Limiting",
+    description: "Limit request frequency",
+    category: "Middleware",
+    icon: "Timer",
+    color: "text-primary-yellow",
+    bgColor: "bg-primary-yellow/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+    },
+  },
+  {
+    id: "middleware-logging",
+    type: "middleware-logging",
+    name: "Request Logging",
+    description: "Log all requests and responses",
+    category: "Middleware",
+    icon: "FileText",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      level: "info",
+      format: "combined",
+    },
+  },
+  {
+    id: "cache",
+    type: "cache",
+    name: "Cache",
+    description: "Cache frequently accessed data",
+    category: "Database",
+    icon: "Zap",
+    color: "text-primary-amber",
+    bgColor: "bg-primary-amber/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Redis",
+      ttl: 3600,
+    },
+  },
+  {
+    id: "external-api",
+    type: "external-api",
+    name: "External API",
+    description: "Call external APIs",
+    category: "External",
+    icon: "ExternalLink",
+    color: "text-primary-violet",
+    bgColor: "bg-primary-violet/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      url: "https://api.external.com",
+      method: "GET",
+      headers: {},
+    },
+  },
+  {
+    id: "validation",
+    type: "validation",
+    name: "Data Validator",
+    description: "Validate request data",
+    category: "Processing",
+    icon: "CheckCircle",
+    color: "text-primary-emerald",
+    bgColor: "bg-primary-emerald/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      schema: "JSON Schema",
+      strict: true,
+    },
+  },
+  {
+    id: "transformation",
+    type: "transformation",
+    name: "Data Transformer",
+    description: "Transform data format",
+    category: "Processing",
+    icon: "RotateCcw",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      format: "JSON to XML",
+    },
+  },
+  {
+    id: "file-storage",
+    type: "file-storage",
+    name: "File Storage",
+    description: "Store and manage files",
+    category: "Storage",
+    icon: "HardDrive",
+    color: "text-primary-sky",
+    bgColor: "bg-primary-sky/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "AWS S3",
+      bucket: "my-bucket",
+    },
+  },
+  {
+    id: "email-service",
+    type: "email-service",
+    name: "Email Service",
+    description: "Send email notifications",
+    category: "Communication",
+    icon: "Mail",
+    color: "text-primary-rose",
+    bgColor: "bg-primary-rose/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "SendGrid",
+      from: "noreply@example.com",
+    },
+  },
+  {
+    id: "notification",
+    type: "notification",
+    name: "Push Notification",
+    description: "Send push notifications",
+    category: "Communication",
+    icon: "Bell",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "FCM",
+      topic: "general",
+    },
+  },
+  {
+    id: "queue",
+    type: "queue",
+    name: "Message Queue",
+    description: "Queue messages for processing",
+    category: "Communication",
+    icon: "Layers",
+    color: "text-primary-slate",
+    bgColor: "bg-primary-slate/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "RabbitMQ",
+      queue: "default",
+    },
+  },
+];
+
+export const WEBSOCKET_API_COMPONENTS: APIComponent[] = [
+  // WebSocket Endpoints
+  {
+    id: "websocket-server",
+    type: "websocket-server",
+    name: "WebSocket Server",
+    description: "Handle WebSocket connections",
+    category: "Endpoints",
+    icon: "MessageSquare",
+    color: "text-primary-emerald",
+    bgColor: "bg-primary-emerald/10",
+    inputs: 0,
+    outputs: 1,
+    config: {
+      path: "/ws",
+      protocols: ["ws", "wss"],
+    },
+  },
+  {
+    id: "websocket-client",
+    type: "websocket-client",
+    name: "WebSocket Client",
+    description: "Connect to external WebSocket servers",
+    category: "Endpoints",
+    icon: "ExternalLink",
+    color: "text-primary-sky",
+    bgColor: "bg-primary-sky/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      url: "wss://external-server.com/ws",
+      reconnect: true,
+    },
+  },
+
+  // WebSocket Management
+  {
+    id: "room-manager",
+    type: "room-manager",
+    name: "Room Manager",
+    description: "Manage WebSocket rooms and channels",
+    category: "Processing",
+    icon: "Users",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      rooms: ["general", "private", "broadcast"],
+      maxUsers: 100,
+    },
+  },
+  {
+    id: "broadcast",
+    type: "broadcast",
+    name: "Broadcast Service",
+    description: "Broadcast messages to all connected clients",
+    category: "Processing",
+    icon: "Bell",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "all",
+      filter: "none",
+    },
+  },
+  {
+    id: "connection-pool",
+    type: "connection-pool",
+    name: "Connection Pool",
+    description: "Manage WebSocket connection lifecycle",
+    category: "Processing",
+    icon: "Layers",
+    color: "text-primary-indigo",
+    bgColor: "bg-primary-indigo/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      maxConnections: 1000,
+      timeout: 30000,
+    },
+  },
+
+  // Shared infrastructure components (no REST API specific components)
+  {
+    id: "database",
+    type: "database",
+    name: "Database",
+    description: "Data storage and retrieval",
+    category: "Database",
+    icon: "Database",
+    color: "text-warning",
+    bgColor: "bg-warning/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "PostgreSQL",
+      connection: "postgresql://localhost:5432/mydb",
+    },
+  },
+  {
+    id: "middleware-auth",
+    type: "middleware-auth",
+    name: "Authentication",
+    description: "Validate user authentication",
+    category: "Middleware",
+    icon: "Shield",
+    color: "text-primary-indigo",
+    bgColor: "bg-primary-indigo/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      type: "JWT",
+      secret: "your-secret-key",
+    },
+  },
+  {
+    id: "middleware-cors",
+    type: "middleware-cors",
+    name: "CORS",
+    description: "Handle Cross-Origin Resource Sharing",
+    category: "Middleware",
+    icon: "Globe",
+    color: "text-primary-cyan",
+    bgColor: "bg-primary-cyan/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      origin: "*",
+      methods: ["GET", "POST", "PUT", "DELETE"],
+    },
+  },
+  {
+    id: "middleware-rate-limit",
+    type: "middleware-rate-limit",
+    name: "Rate Limiting",
+    description: "Limit request frequency",
+    category: "Middleware",
+    icon: "Timer",
+    color: "text-primary-yellow",
+    bgColor: "bg-primary-yellow/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+    },
+  },
+  {
+    id: "middleware-logging",
+    type: "middleware-logging",
+    name: "Request Logging",
+    description: "Log all requests and responses",
+    category: "Middleware",
+    icon: "FileText",
+    color: "text-muted-foreground",
+    bgColor: "bg-muted/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      level: "info",
+      format: "combined",
+    },
+  },
+  {
+    id: "cache",
+    type: "cache",
+    name: "Cache",
+    description: "Cache frequently accessed data",
+    category: "Database",
+    icon: "Zap",
+    color: "text-primary-amber",
+    bgColor: "bg-primary-amber/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      type: "Redis",
+      ttl: 3600,
+    },
+  },
+  {
+    id: "external-api",
+    type: "external-api",
+    name: "External API",
+    description: "Call external APIs",
+    category: "External",
+    icon: "ExternalLink",
+    color: "text-primary-violet",
+    bgColor: "bg-primary-violet/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      url: "https://api.external.com",
+      method: "GET",
+      headers: {},
+    },
+  },
+  {
+    id: "validation",
+    type: "validation",
+    name: "Data Validator",
+    description: "Validate request data",
+    category: "Processing",
+    icon: "CheckCircle",
+    color: "text-primary-emerald",
+    bgColor: "bg-primary-emerald/10",
+    inputs: 1,
+    outputs: 2,
+    config: {
+      schema: "JSON Schema",
+      strict: true,
+    },
+  },
+  {
+    id: "transformation",
+    type: "transformation",
+    name: "Data Transformer",
+    description: "Transform data format",
+    category: "Processing",
+    icon: "RotateCcw",
+    color: "text-primary-orange",
+    bgColor: "bg-primary-orange/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      format: "JSON to XML",
+    },
+  },
+  {
+    id: "file-storage",
+    type: "file-storage",
+    name: "File Storage",
+    description: "Store and manage files",
+    category: "Storage",
+    icon: "HardDrive",
+    color: "text-primary-sky",
+    bgColor: "bg-primary-sky/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "AWS S3",
+      bucket: "my-bucket",
+    },
+  },
+  {
+    id: "email-service",
+    type: "email-service",
+    name: "Email Service",
+    description: "Send email notifications",
+    category: "Communication",
+    icon: "Mail",
+    color: "text-primary-rose",
+    bgColor: "bg-primary-rose/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "SendGrid",
+      from: "noreply@example.com",
+    },
+  },
+  {
+    id: "notification",
+    type: "notification",
+    name: "Push Notification",
+    description: "Send push notifications",
+    category: "Communication",
+    icon: "Bell",
+    color: "text-primary-purple",
+    bgColor: "bg-primary-purple/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "FCM",
+      topic: "general",
+    },
+  },
+  {
+    id: "queue",
+    type: "queue",
+    name: "Message Queue",
+    description: "Queue messages for processing",
+    category: "Communication",
+    icon: "Layers",
+    color: "text-primary-slate",
+    bgColor: "bg-primary-slate/10",
+    inputs: 1,
+    outputs: 1,
+    config: {
+      provider: "RabbitMQ",
+      queue: "default",
+    },
+  },
+];
+
+export const getComponentsByCategory = (
+  projectType: "rest-api" | "graphql" | "websocket" = "rest-api"
+) => {
+  const components = getComponentsForProjectType(projectType);
+  const categories: Record<string, APIComponent[]> = {};
+
+  components.forEach((component) => {
+    if (!categories[component.category]) {
+      categories[component.category] = [];
+    }
+    categories[component.category].push(component);
+  });
+
+  return categories;
+};
+
+export const getComponentsForProjectType = (
+  projectType: "rest-api" | "graphql" | "websocket"
+): APIComponent[] => {
+  switch (projectType) {
+    case "graphql":
+      return GRAPHQL_API_COMPONENTS;
+    case "websocket":
+      return WEBSOCKET_API_COMPONENTS;
+    case "rest-api":
+    default:
+      return REST_API_COMPONENTS;
+  }
+};
+
+export const getComponentById = (
+  id: string,
+  projectType: "rest-api" | "graphql" | "websocket" = "rest-api"
+): APIComponent | undefined => {
+  const components = getComponentsForProjectType(projectType);
+  return components.find((component) => component.id === id);
+};
