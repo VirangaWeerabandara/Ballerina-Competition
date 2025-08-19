@@ -57,9 +57,22 @@ const ProjectsPage = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
+  // Monitor delete state changes for debugging
+  useEffect(() => {
+    console.log(
+      `Delete state changed - Dialog: ${deleteDialogOpen}, Pending: ${pendingDeleteId}`
+    );
+  }, [deleteDialogOpen, pendingDeleteId]);
+
   const handleDeleteProject = async (projectId: string) => {
+    console.log(`Starting delete for project: ${projectId}`);
     setLoading(true);
     setError(null);
+
+    // Immediately clear the delete dialog state to prevent any navigation
+    setDeleteDialogOpen(false);
+    setPendingDeleteId(null);
+
     try {
       const res = await fetch(
         `${BACKEND_BASE_URL}/projects/remove?projectId=${encodeURIComponent(
@@ -70,16 +83,33 @@ const ProjectsPage = () => {
         }
       );
       if (res.ok) {
-        setProjects((prev) => prev.filter((p) => p.id !== projectId));
+        console.log(`Project ${projectId} deleted successfully from backend`);
+
+        // Remove the project from the list
+        setProjects((prev) => {
+          const filtered = prev.filter((p) => p.id !== projectId);
+          console.log(
+            `Updated projects list, removed ${projectId}, new count: ${filtered.length}`
+          );
+          return filtered;
+        });
+
+        // Show success message (optional)
+        console.log("Project deleted successfully");
+
+        // Small delay to ensure state is updated
+        setTimeout(() => {
+          setLoading(false);
+        }, 100);
       } else {
+        console.error(`Failed to delete project ${projectId} from backend`);
         setError("Failed to delete project.");
+        setLoading(false);
       }
     } catch (err) {
+      console.error(`Error deleting project ${projectId}:`, err);
       setError("Failed to delete project.");
-    } finally {
       setLoading(false);
-      setDeleteDialogOpen(false);
-      setPendingDeleteId(null);
     }
   };
 
@@ -231,10 +261,32 @@ const ProjectsPage = () => {
   };
 
   const handleProjectClick = (projectId: string) => {
+    console.log(`Project click attempted for: ${projectId}`);
+
+    // Don't navigate if we're in the middle of a delete operation
+    if (deleteDialogOpen && pendingDeleteId === projectId) {
+      console.log(
+        `Blocking navigation - delete operation in progress for ${projectId}`
+      );
+      return;
+    }
+
     // Only navigate if the project still exists in the list (prevents navigation after delete)
     const exists = projects.some((p) => p.id === projectId);
     if (exists) {
+      console.log(`Navigating to project: ${projectId}`);
       navigate(`/projects/editor/${projectId}`);
+    } else {
+      console.log(
+        `Project ${projectId} not found in list, preventing navigation`
+      );
+      // Optionally show an error message
+      setError("Project not found or has been deleted.");
+
+      // Clear the error after a few seconds
+      setTimeout(() => {
+        setError(null);
+      }, 3000);
     }
   };
 
@@ -508,7 +560,16 @@ const ProjectsPage = () => {
                         <Card
                           key={project.id}
                           className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
-                          onClick={() => handleProjectClick(project.id)}
+                          onClick={() => {
+                            // Don't navigate if we're in the middle of a delete operation
+                            if (
+                              deleteDialogOpen &&
+                              pendingDeleteId === project.id
+                            ) {
+                              return;
+                            }
+                            handleProjectClick(project.id);
+                          }}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
@@ -581,7 +642,16 @@ const ProjectsPage = () => {
                         <Card
                           key={project.id}
                           className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
-                          onClick={() => handleProjectClick(project.id)}
+                          onClick={() => {
+                            // Don't navigate if we're in the middle of a delete operation
+                            if (
+                              deleteDialogOpen &&
+                              pendingDeleteId === project.id
+                            ) {
+                              return;
+                            }
+                            handleProjectClick(project.id);
+                          }}
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
@@ -600,8 +670,18 @@ const ProjectsPage = () => {
                                     pendingDeleteId === project.id
                                   }
                                   onOpenChange={(open) => {
+                                    console.log(
+                                      `Delete dialog ${
+                                        open ? "opened" : "closed"
+                                      } for project ${project.id}`
+                                    );
                                     setDeleteDialogOpen(open);
-                                    if (!open) setPendingDeleteId(null);
+                                    if (!open) {
+                                      setPendingDeleteId(null);
+                                      console.log(
+                                        `Cleared pending delete for project ${project.id}`
+                                      );
+                                    }
                                   }}
                                 >
                                   <AlertDialogTrigger asChild>
@@ -609,7 +689,9 @@ const ProjectsPage = () => {
                                       className="h-4 w-4 text-primary hover:text-primary/80 cursor-pointer transition-colors"
                                       aria-label="Delete project"
                                       onClick={(e) => {
+                                        e.preventDefault();
                                         e.stopPropagation();
+                                        e.nativeEvent.stopImmediatePropagation();
                                         setPendingDeleteId(project.id);
                                         setDeleteDialogOpen(true);
                                       }}
