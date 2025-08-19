@@ -31,7 +31,7 @@ import {
   Loader2,
   Pause,
 } from "lucide-react";
-import { CanvasBlock, Connection } from "./ProjectCanvas";
+import { Node, Edge } from "reactflow";
 
 export interface SimulationLog {
   id: string;
@@ -46,8 +46,8 @@ export interface SimulationLog {
 }
 
 interface SimulationPanelProps {
-  blocks: CanvasBlock[];
-  connections: Connection[];
+  blocks: Node[];
+  connections: Edge[];
   isSimulating: boolean;
   onStart: () => void;
   onStop: () => void;
@@ -174,13 +174,13 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
       const availableBlocks = blocks.filter((block) => {
         // Entry points (no incoming connections) can start immediately
         const isEntryPoint = connections.every(
-          (conn) => conn.toBlockId !== block.instanceId
+          (conn) => conn.target !== block.id
         );
         if (isEntryPoint && stepCounter <= 2) return true;
 
         // Other blocks can be processed after their dependencies
         const hasDependencies = connections.some(
-          (conn) => conn.toBlockId === block.instanceId
+          (conn) => conn.target === block.id
         );
         if (hasDependencies && stepCounter > 2) return true;
 
@@ -212,28 +212,28 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
 
   // Simulate block processing with three phases
   const simulateBlockProcessing = (
-    block: CanvasBlock,
+    block: Node,
     step: number,
     timeoutIds: NodeJS.Timeout[]
   ) => {
     const phases = [
       {
         action: "start",
-        message: `Starting ${block.name}`,
+        message: `Starting ${block.data.label}`,
         type: "info" as const,
-        explanation: getBlockExplanation(block.id, "start"),
+        explanation: getBlockExplanation(block.data.type, "start"),
       },
       {
         action: "process",
-        message: `Processing request in ${block.name}`,
+        message: `Processing request in ${block.data.label}`,
         type: "info" as const,
-        explanation: getBlockExplanation(block.id, "process"),
+        explanation: getBlockExplanation(block.data.type, "process"),
       },
       {
         action: "complete",
-        message: `${block.name} completed successfully`,
+        message: `${block.data.label} completed successfully`,
         type: "success" as const,
-        explanation: getBlockExplanation(block.id, "complete"),
+        explanation: getBlockExplanation(block.data.type, "complete"),
       },
     ];
 
@@ -243,10 +243,10 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
         if (!isSimulating || isPaused) return;
 
         const log: SimulationLog = {
-          id: `log_${Date.now()}_${block.instanceId}_${phase.action}`,
+          id: `log_${Date.now()}_${block.id}_${phase.action}`,
           timestamp: new Date(),
-          blockId: block.instanceId,
-          blockName: block.name,
+          blockId: block.id,
+          blockName: block.data.label,
           type: phase.type,
           message: phase.message,
           explanation: phase.explanation,
@@ -260,7 +260,7 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
         setLogs((prev) => [log, ...prev.slice(0, 49)]); // Keep last 50 logs
 
         // Show active state
-        setActiveBlocks((prev) => new Set([...prev, block.instanceId]));
+        setActiveBlocks((prev) => new Set([...prev, block.id]));
 
         // Remove active state after a delay
         const activeTimeoutId = setTimeout(() => {
@@ -268,7 +268,7 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
             // Only update if still simulating
             setActiveBlocks((prev) => {
               const newSet = new Set(prev);
-              newSet.delete(block.instanceId);
+              newSet.delete(block.id);
               return newSet;
             });
           }
@@ -302,18 +302,18 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
     }
   };
 
-  const getBlockIcon = (blockId: string, className = "w-4 h-4") => {
+  const getBlockIcon = (blockType: string, className = "w-4 h-4") => {
     if (
-      blockId.includes("endpoint") ||
-      blockId.includes("get") ||
-      blockId.includes("post")
+      blockType.includes("endpoint") ||
+      blockType.includes("get") ||
+      blockType.includes("post")
     ) {
       return <Globe className={className} />;
     }
-    if (blockId.includes("database")) {
+    if (blockType.includes("database")) {
       return <Database className={className} />;
     }
-    if (blockId.includes("auth")) {
+    if (blockType.includes("auth")) {
       return <Shield className={className} />;
     }
     return <Server className={className} />;
@@ -633,12 +633,12 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
             <ScrollArea className="h-full px-4">
               <div className="space-y-3">
                 {blocks.map((block) => (
-                  <TooltipProvider key={block.instanceId}>
+                  <TooltipProvider key={block.id}>
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Card
                           className={`transition-all cursor-pointer ${
-                            activeBlocks.has(block.instanceId)
+                            activeBlocks.has(block.id)
                               ? "ring-2 ring-primary bg-primary/5"
                               : "hover:bg-muted/50"
                           }`}
@@ -647,21 +647,21 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
                             <div className="flex items-center space-x-3">
                               <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border border-border">
                                 {getBlockIcon(
-                                  block.id,
+                                  block.data.type,
                                   "w-5 h-5 text-foreground"
                                 )}
                               </div>
                               <div className="flex-1">
                                 <div className="font-medium text-sm">
-                                  {block.name}
+                                  {block.data.label}
                                 </div>
                                 <div className="text-xs text-muted-foreground">
-                                  {block.category}
+                                  {block.data.category}
                                 </div>
                               </div>
                               <div
                                 className={`w-2 h-2 rounded-full ${
-                                  activeBlocks.has(block.instanceId)
+                                  activeBlocks.has(block.id)
                                     ? "bg-green-500 animate-pulse"
                                     : "bg-gray-300"
                                 }`}
@@ -672,12 +672,12 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
                       </TooltipTrigger>
                       <TooltipContent side="left" className="max-w-xs">
                         <div className="space-y-2">
-                          <p className="font-medium">{block.name}</p>
-                          <p className="text-sm">{block.description}</p>
+                          <p className="font-medium">{block.data.label}</p>
+                          <p className="text-sm">{block.data.description}</p>
                           <div className="flex items-center space-x-2 text-xs">
-                            <span>Inputs: {block.inputs}</span>
+                            <span>Inputs: {block.data.inputs}</span>
                             <ArrowRight className="w-3 h-3" />
-                            <span>Outputs: {block.outputs}</span>
+                            <span>Outputs: {block.data.outputs}</span>
                           </div>
                         </div>
                       </TooltipContent>

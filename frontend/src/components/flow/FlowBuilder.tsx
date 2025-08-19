@@ -233,29 +233,8 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                 <ChevronRight className="w-4 h-4" />
               </button>
               <SimulationPanel
-                blocks={nodes.map((node) => ({
-                  instanceId: node.id,
-                  id: node.data.type,
-                  name: node.data.label,
-                  type: node.data.type,
-                  category: node.data.category,
-                  description: node.data.description,
-                  icon: node.data.icon,
-                  color: node.data.color,
-                  inputs: node.data.inputs,
-                  outputs: node.data.outputs,
-                  x: node.position.x,
-                  y: node.position.y,
-                  width: 200,
-                  height: 120,
-                }))}
-                connections={edges.map((edge) => ({
-                  id: edge.id,
-                  fromBlockId: edge.source,
-                  fromPort: parseInt(edge.sourceHandle?.split("-")[1] || "0"),
-                  toBlockId: edge.target,
-                  toPort: parseInt(edge.targetHandle?.split("-")[1] || "0"),
-                }))}
+                blocks={nodes}
+                connections={edges}
                 isSimulating={isSimulating}
                 onStart={handleSimulation}
                 onStop={handleSimulation}

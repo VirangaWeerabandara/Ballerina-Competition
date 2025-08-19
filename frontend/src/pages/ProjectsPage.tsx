@@ -719,7 +719,7 @@ const ProjectsPage = () => {
                                         onClick={() =>
                                           handleDeleteProject(project.id)
                                         }
-                                        className="bg-primary/80 text-primary-foreground hover:bg-primary"
+                                        className="bg-primary text-primary-foreground hover:bg-primary/90"
                                       >
                                         Delete
                                       </AlertDialogAction>
