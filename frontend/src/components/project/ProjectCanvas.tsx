@@ -2,7 +2,20 @@ import React, { useState, useRef, useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { X, Play, MoreVertical } from "lucide-react";
+import {
+  X,
+  Play,
+  MoreVertical,
+  Globe,
+  Database,
+  MessageSquare,
+  Server,
+  Users,
+  Lock,
+  Zap,
+  Settings,
+  CloudRain,
+} from "lucide-react";
 import { BlockType } from "./ComponentSidebar";
 
 export interface CanvasBlock extends BlockType {
@@ -62,18 +75,70 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
   const [panStart, setPanStart] = useState({ x: 0, y: 0 });
   const [panOrigin, setPanOrigin] = useState({ x: 0, y: 0 });
   const [scale, setScale] = useState(1);
+  const [isDragOver, setIsDragOver] = useState(false);
+
+  // Function to reconstruct the icon from the block id
+  const getIconForBlock = (blockId: string): React.ReactNode => {
+    switch (blockId) {
+      case "get-endpoint":
+      case "post-endpoint":
+      case "put-endpoint":
+      case "delete-endpoint":
+        return <Globe className="w-4 h-4" />;
+      case "database":
+      case "query-resolver":
+      case "mutation-resolver":
+      case "subscription-resolver":
+        return <Database className="w-4 h-4" />;
+      case "auth":
+        return <Lock className="w-4 h-4" />;
+      case "cache":
+      case "event-handler":
+        return <Zap className="w-4 h-4" />;
+      case "external-api":
+        return <CloudRain className="w-4 h-4" />;
+      case "middleware":
+      case "schema":
+        return <Settings className="w-4 h-4" />;
+      case "websocket-server":
+        return <Server className="w-4 h-4" />;
+      case "room-manager":
+        return <Users className="w-4 h-4" />;
+      case "broadcast":
+        return <MessageSquare className="w-4 h-4" />;
+      default:
+        return <Database className="w-4 h-4" />;
+    }
+  };
 
   // Fix: Allow drop by preventing default and stopping propagation
   const handleDrop = useCallback(
     (e: React.DragEvent) => {
+      console.log("🎯 DROP EVENT RECEIVED in ProjectCanvas!");
       e.preventDefault();
       e.stopPropagation();
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
       try {
-        const blockData = JSON.parse(
-          e.dataTransfer.getData("application/json")
-        ) as BlockType;
+        // Try to get data from multiple formats
+        let dataString =
+          e.dataTransfer.getData("application/json") ||
+          e.dataTransfer.getData("text/plain") ||
+          e.dataTransfer.getData("application/x-block-data");
+
+        if (!dataString) {
+          console.error("No drag data found");
+          return;
+        }
+
+        const serializableBlockData = JSON.parse(dataString);
+
+        // Reconstruct the full BlockType with icon as a React element
+        const blockData: BlockType = {
+          ...serializableBlockData,
+          icon: getIconForBlock(serializableBlockData.id),
+        };
+
         // Adjust for pan/zoom
         const x = (e.clientX - rect.left - canvasOffset.x) / scale - 75;
         const y = (e.clientY - rect.top - canvasOffset.y) / scale - 40;
@@ -85,17 +150,48 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
           width: 150,
           height: 80,
         };
+        console.log("✅ Adding block to canvas:", newBlock);
         onBlockAdd(newBlock);
+        setIsDragOver(false);
+        console.log("✅ Block add completed!");
       } catch (error) {
         console.error("Error parsing dropped data:", error);
+        setIsDragOver(false);
       }
     },
     [onBlockAdd, canvasOffset, scale]
   );
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
+    console.log("Drag over canvas - effect set to copy");
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "copy";
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    console.log("Drag enter canvas");
     e.preventDefault();
     e.stopPropagation();
+    e.dataTransfer.dropEffect = "copy";
+    setIsDragOver(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    // Only set isDragOver to false if we're actually leaving the canvas area
+    const rect = canvasRef.current?.getBoundingClientRect();
+    if (rect) {
+      const isOutside =
+        e.clientX < rect.left ||
+        e.clientX > rect.right ||
+        e.clientY < rect.top ||
+        e.clientY > rect.bottom;
+      if (isOutside) {
+        setIsDragOver(false);
+      }
+    }
   }, []);
 
   const handleBlockMouseDown = (block: CanvasBlock, e: React.MouseEvent) => {
@@ -152,10 +248,22 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
     setIsPanning(false);
   }, []);
 
-  // Pan start on empty canvas
+  // Enhanced pan handling for middle mouse button and empty canvas
   const handleCanvasMouseDown = (e: React.MouseEvent) => {
-    // Only pan if not clicking on a block
-    if (e.target === canvasRef.current) {
+    // Only pan if not clicking on a block and using middle mouse button or clicking on empty canvas
+    if (e.target === canvasRef.current || e.button === 1) {
+      e.preventDefault();
+      setIsPanning(true);
+      setPanStart({ x: e.clientX, y: e.clientY });
+      setPanOrigin({ ...canvasOffset });
+    }
+  };
+
+  // Handle middle mouse button down specifically
+  const handleCanvasMouseDownMiddle = (e: React.MouseEvent) => {
+    if (e.button === 1) {
+      // Middle mouse button
+      e.preventDefault();
       setIsPanning(true);
       setPanStart({ x: e.clientX, y: e.clientY });
       setPanOrigin({ ...canvasOffset });
@@ -170,6 +278,35 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
     newScale = Math.max(0.2, Math.min(2.5, newScale));
     setScale(newScale);
   };
+
+  // Keyboard shortcuts
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    switch (e.key) {
+      case "0":
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          setScale(1);
+          setCanvasOffset({ x: 0, y: 0 });
+        }
+        break;
+      case "Home":
+        e.preventDefault();
+        setCanvasOffset({ x: 0, y: 0 });
+        setScale(1);
+        break;
+      case "Escape":
+        setIsConnecting(false);
+        setConnectionStart(null);
+        setSelectedBlock(null);
+        break;
+    }
+  }, []);
+
+  // Add keyboard event listener
+  React.useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const handlePortClick = (
     blockId: string,
@@ -206,12 +343,18 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
 
       if (!fromBlock || !toBlock) return null;
 
+      // Calculate port positions relative to block
+      const fromPortY =
+        (fromBlock.height / (fromBlock.outputs + 1)) *
+        (connection.fromPort + 1);
+      const toPortY =
+        (toBlock.height / (toBlock.inputs + 1)) * (connection.toPort + 1);
+
       // Adjust for pan/zoom
       const fromX = (fromBlock.x + fromBlock.width) * scale + canvasOffset.x;
-      const fromY =
-        (fromBlock.y + fromBlock.height / 2) * scale + canvasOffset.y;
+      const fromY = (fromBlock.y + fromPortY) * scale + canvasOffset.y;
       const toX = toBlock.x * scale + canvasOffset.x;
-      const toY = (toBlock.y + toBlock.height / 2) * scale + canvasOffset.y;
+      const toY = (toBlock.y + toPortY) * scale + canvasOffset.y;
 
       return (
         <svg
@@ -263,7 +406,11 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
                 <div
                   className={`w-6 h-6 rounded ${block.color} text-white flex items-center justify-center`}
                 >
-                  {block.icon}
+                  {React.isValidElement(block.icon)
+                    ? block.icon
+                    : typeof block.icon === "function"
+                    ? React.createElement(block.icon)
+                    : null}
                 </div>
                 <span className="font-medium text-sm truncate">
                   {block.name}
@@ -325,12 +472,19 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
 
   return (
     <div
-      className="flex-1 relative overflow-hidden bg-muted/20"
+      className="flex-1 relative overflow-hidden bg-background"
       onMouseMove={handleMouseMove}
       onMouseUp={handleMouseUp}
+      style={{ pointerEvents: "auto" }}
     >
       {/* Top toolbar */}
       <div className="absolute top-4 right-4 z-20 flex items-center space-x-2">
+        <div className="text-xs text-muted-foreground bg-background/80 px-2 py-1 rounded border">
+          <span className="font-medium">Controls:</span>
+          <span className="ml-2">🖱️ Middle drag to pan</span>
+          <span className="ml-2">🔍 Scroll to zoom</span>
+          <span className="ml-2">⌨️ Ctrl+0 to reset</span>
+        </div>
         <Button
           onClick={onSimulate}
           disabled={isSimulating || blocks.length === 0}
@@ -344,32 +498,64 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
       {/* Canvas */}
       <div
         ref={canvasRef}
-        className="w-full h-full relative"
+        className={`w-full h-full relative select-none transition-all ${
+          isDragOver ? "bg-primary/5 ring-2 ring-primary ring-inset" : ""
+        }`}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
         onClick={() => setSelectedBlock(null)}
         onMouseDown={handleCanvasMouseDown}
         onWheel={handleWheel}
         style={{
           pointerEvents: "auto",
-          cursor: isPanning ? "grabbing" : "default",
+          cursor: isPanning ? "grabbing" : isDragOver ? "copy" : "default",
+          userSelect: "none",
+          WebkitUserSelect: "none",
+          MozUserSelect: "none",
+          msUserSelect: "none",
         }}
       >
         {/* Grid background */}
         {showGrid && (
           <div
-            className="absolute inset-0 opacity-30 pointer-events-none"
+            className="absolute inset-0 z-0 pointer-events-none"
             style={{
               backgroundImage: `
-                linear-gradient(hsl(var(--border)) 1px, transparent 1px),
-                linear-gradient(90deg, hsl(var(--border)) 1px, transparent 1px)
+                linear-gradient(rgba(120,120,120,0.4) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(120,120,120,0.4) 1px, transparent 1px),
+                linear-gradient(rgba(120,120,120,0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(120,120,120,0.1) 1px, transparent 1px)
               `,
-              backgroundSize: `${20 * scale}px ${20 * scale}px`,
-              backgroundPosition: `${canvasOffset.x % (20 * scale)}px ${
-                canvasOffset.y % (20 * scale)
+              backgroundSize: `${24 * scale}px ${24 * scale}px, ${
+                24 * scale
+              }px ${24 * scale}px, ${120 * scale}px ${120 * scale}px, ${
+                120 * scale
+              }px ${120 * scale}px`,
+              backgroundPosition: `${canvasOffset.x % (24 * scale)}px ${
+                canvasOffset.y % (24 * scale)
+              }px, ${canvasOffset.x % (24 * scale)}px ${
+                canvasOffset.y % (24 * scale)
+              }px, ${canvasOffset.x % (120 * scale)}px ${
+                canvasOffset.y % (120 * scale)
+              }px, ${canvasOffset.x % (120 * scale)}px ${
+                canvasOffset.y % (120 * scale)
               }px`,
             }}
           />
+        )}
+
+        {/* Pan indicator */}
+        {isPanning && (
+          <div className="absolute top-4 left-4 z-20">
+            <Badge
+              variant="secondary"
+              className="bg-muted-foreground text-muted"
+            >
+              Panning... Release to stop
+            </Badge>
+          </div>
         )}
 
         {/* Connection lines */}
@@ -380,7 +566,7 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
 
         {/* Empty state */}
         {blocks.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center">
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
             <div className="text-center">
               <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
                 <MoreVertical className="w-6 h-6 text-muted-foreground" />
@@ -402,6 +588,20 @@ const ProjectCanvas: React.FC<ProjectCanvasProps & { showGrid?: boolean }> = ({
             <Badge variant="default" className="bg-primary">
               Connecting... Click on an input port to complete
             </Badge>
+          </div>
+        )}
+
+        {/* Drop zone indicator */}
+        {isDragOver && (
+          <div className="absolute inset-0 flex items-center justify-center z-30 pointer-events-none">
+            <div className="bg-primary/10 border-2 border-dashed border-primary rounded-lg p-8 text-center">
+              <div className="text-primary font-semibold text-lg mb-2">
+                Drop Component Here
+              </div>
+              <div className="text-primary/70 text-sm">
+                Release to add component to canvas
+              </div>
+            </div>
           </div>
         )}
       </div>

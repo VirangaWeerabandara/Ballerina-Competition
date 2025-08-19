@@ -1,170 +1,253 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, SignInButton } from "@asgardeo/react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  ArrowLeft,
-  Settings,
-  Share,
-  Save,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
-import ComponentSidebar, {
-  BlockType,
-} from "@/components/project/ComponentSidebar";
-import ProjectCanvas, {
-  CanvasBlock,
-  Connection,
-} from "@/components/project/ProjectCanvas";
-import SimulationPanel from "@/components/project/SimulationPanel";
-import { ProjectType } from "@/components/project/CreateProjectModal";
+import FlowBuilder from "@/components/flow/FlowBuilder";
+
+import { Node, Edge } from "reactflow";
 
 interface ProjectData {
   id: string;
   name: string;
-  type: ProjectType;
+  type: "rest-api" | "graphql" | "websocket";
   template: string;
-  blocks: CanvasBlock[];
-  connections: Connection[];
+  nodes?: Node[];
+  edges?: Edge[];
 }
+
+const exampleProjectData: Record<string, ProjectData> = {
+  example_chatbot: {
+    id: "example_chatbot",
+    name: "Chatbot API",
+    type: "rest-api",
+    template: "chatbot-template",
+    nodes: [
+      {
+        id: "1",
+        type: "apiNode",
+        position: { x: 100, y: 200 },
+        data: {
+          label: "GET /chat",
+          type: "endpoint-get",
+          category: "Endpoints",
+          description: "Get chat messages",
+          icon: "Download",
+          color: "bg-blue-400",
+          inputs: 0,
+          outputs: 1,
+        },
+      },
+      {
+        id: "2",
+        type: "apiNode",
+        position: { x: 350, y: 200 },
+        data: {
+          label: "POST /chat",
+          type: "endpoint-post",
+          category: "Endpoints",
+          description: "Send chat message",
+          icon: "Upload",
+          color: "bg-green-400",
+          inputs: 0,
+          outputs: 1,
+        },
+      },
+      {
+        id: "3",
+        type: "apiNode",
+        position: { x: 600, y: 200 },
+        data: {
+          label: "AI Bot Logic",
+          type: "external-api",
+          category: "External",
+          description: "Bot response logic",
+          icon: "Bot",
+          color: "bg-purple-400",
+          inputs: 1,
+          outputs: 1,
+        },
+      },
+    ],
+    edges: [
+      {
+        id: "e1-3",
+        source: "1",
+        target: "3",
+        sourceHandle: "output-0",
+        targetHandle: "input-0",
+      },
+      {
+        id: "e2-3",
+        source: "2",
+        target: "3",
+        sourceHandle: "output-0",
+        targetHandle: "input-0",
+      },
+    ],
+  },
+  example_weather: {
+    id: "example_weather",
+    name: "Weather Data Service",
+    type: "rest-api",
+    template: "weather-template",
+    nodes: [
+      {
+        id: "1",
+        type: "apiNode",
+        position: { x: 100, y: 200 },
+        data: {
+          label: "GET /weather",
+          type: "endpoint-get",
+          category: "Endpoints",
+          description: "Get weather info",
+          icon: "Download",
+          color: "bg-blue-400",
+          inputs: 0,
+          outputs: 1,
+        },
+      },
+      {
+        id: "2",
+        type: "apiNode",
+        position: { x: 350, y: 200 },
+        data: {
+          label: "Weather API",
+          type: "external-api",
+          category: "External",
+          description: "External weather provider",
+          icon: "Cloud",
+          color: "bg-cyan-400",
+          inputs: 1,
+          outputs: 1,
+        },
+      },
+    ],
+    edges: [
+      {
+        id: "e1-2",
+        source: "1",
+        target: "2",
+        sourceHandle: "output-0",
+        targetHandle: "input-0",
+      },
+    ],
+  },
+  example_blog: {
+    id: "example_blog",
+    name: "Blog Platform API",
+    type: "rest-api",
+    template: "blog-template",
+    nodes: [
+      {
+        id: "1",
+        type: "apiNode",
+        position: { x: 100, y: 200 },
+        data: {
+          label: "GET /posts",
+          type: "endpoint-get",
+          category: "Endpoints",
+          description: "Get blog posts",
+          icon: "Download",
+          color: "bg-blue-400",
+          inputs: 0,
+          outputs: 1,
+        },
+      },
+      {
+        id: "2",
+        type: "apiNode",
+        position: { x: 350, y: 200 },
+        data: {
+          label: "POST /posts",
+          type: "endpoint-post",
+          category: "Endpoints",
+          description: "Create blog post",
+          icon: "Upload",
+          color: "bg-green-400",
+          inputs: 0,
+          outputs: 1,
+        },
+      },
+      {
+        id: "3",
+        type: "apiNode",
+        position: { x: 600, y: 200 },
+        data: {
+          label: "Database",
+          type: "database",
+          category: "Database",
+          description: "Blog DB",
+          icon: "Database",
+          color: "bg-yellow-400",
+          inputs: 2,
+          outputs: 1,
+        },
+      },
+    ],
+    edges: [
+      {
+        id: "e1-3",
+        source: "1",
+        target: "3",
+        sourceHandle: "output-0",
+        targetHandle: "input-0",
+      },
+      {
+        id: "e2-3",
+        source: "2",
+        target: "3",
+        sourceHandle: "output-0",
+        targetHandle: "input-1",
+      },
+    ],
+  },
+};
 
 const ProjectEditorPage = () => {
   const { projectId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
+
+  // Helper to get query params
+  function getQueryParam(param: string) {
+    return new URLSearchParams(location.search).get(param);
+  }
 
   const [project, setProject] = useState<ProjectData>({
     id: projectId || "new",
-    name: "Untitled Project",
+    name: "Untitled API Project",
     type: "rest-api",
     template: "basic-crud",
-    blocks: [],
-    connections: [],
+    nodes: [],
+    edges: [],
   });
 
-  const [isSimulating, setIsSimulating] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  // Sidebar/panel visibility
-  const [showSidebar, setShowSidebar] = useState(true);
-  const [showSimPanel, setShowSimPanel] = useState(true);
-
-  // Load project data (in a real app, this would fetch from an API)
+  // Load project data or example data
   useEffect(() => {
-    if (projectId && projectId !== "new") {
+    const isExample = getQueryParam("example") === "true";
+    if (isExample && projectId && exampleProjectData[projectId]) {
+      setProject(exampleProjectData[projectId]);
+    } else if (projectId && projectId !== "new") {
       // Simulate loading project data
       const mockProject: ProjectData = {
         id: projectId,
         name: "E-commerce API",
         type: "rest-api",
         template: "basic-crud",
-        blocks: [],
-        connections: [],
       };
       setProject(mockProject);
     }
-  }, [projectId]);
+  }, [projectId, location.search]);
 
-  const handleBlockAdd = (block: CanvasBlock) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: [...prev.blocks, block],
-    }));
+  const handleSave = (projectData: any) => {
+    console.log("Saving project:", projectData);
+    // Here you would typically save to your backend
+    // For now, we'll just save to localStorage
+    localStorage.setItem(`project_${project.id}`, JSON.stringify(projectData));
   };
 
-  const handleBlockUpdate = (
-    blockId: string,
-    updates: Partial<CanvasBlock>
-  ) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: prev.blocks.map((block) =>
-        block.instanceId === blockId ? { ...block, ...updates } : block
-      ),
-    }));
-  };
-
-  const handleBlockDelete = (blockId: string) => {
-    setProject((prev) => ({
-      ...prev,
-      blocks: prev.blocks.filter((block) => block.instanceId !== blockId),
-      connections: prev.connections.filter(
-        (conn) => conn.fromBlockId !== blockId && conn.toBlockId !== blockId
-      ),
-    }));
-  };
-
-  const handleConnectionAdd = (connection: Connection) => {
-    setProject((prev) => ({
-      ...prev,
-      connections: [...prev.connections, connection],
-    }));
-  };
-
-  const handleConnectionDelete = (connectionId: string) => {
-    setProject((prev) => ({
-      ...prev,
-      connections: prev.connections.filter((conn) => conn.id !== connectionId),
-    }));
-  };
-
-  const handleSimulationStart = () => {
-    if (project.blocks.length === 0) {
-      alert("Add some blocks to the canvas before starting simulation");
-      return;
-    }
-    setIsSimulating(true);
-  };
-
-  const handleSimulationStop = () => {
-    setIsSimulating(false);
-  };
-
-  const handleSimulationReset = () => {
-    setIsSimulating(false);
-    // Reset simulation state
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      console.log("Project saved:", project);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDragStart = (blockType: BlockType) => {
-    // Handle drag start if needed
-  };
-
-  const getProjectTypeColor = (type: ProjectType) => {
-    switch (type) {
-      case "rest-api":
-        return "bg-blue-500";
-      case "graphql":
-        return "bg-purple-500";
-      case "websocket":
-        return "bg-green-500";
-      default:
-        return "bg-gray-500";
-    }
-  };
-
-  const getProjectTypeName = (type: ProjectType) => {
-    switch (type) {
-      case "rest-api":
-        return "REST API";
-      case "graphql":
-        return "GraphQL";
-      case "websocket":
-        return "WebSocket";
-      default:
-        return "Unknown";
-    }
+  const handleBack = () => {
+    navigate("/projects");
   };
 
   return (
@@ -186,156 +269,13 @@ const ProjectEditorPage = () => {
       </SignedOut>
 
       <SignedIn>
-        <div className="h-screen flex flex-col bg-background">
-          {/* Header */}
-          <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6">
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate("/projects")}
-                className="flex items-center space-x-2"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Projects</span>
-              </Button>
-
-              <div className="h-6 w-px bg-border" />
-
-              <div className="flex items-center space-x-3">
-                <div>
-                  <h1 className="text-lg font-semibold">{project.name}</h1>
-                  <div className="flex items-center space-x-2">
-                    <Badge
-                      variant="secondary"
-                      className={`text-white ${getProjectTypeColor(
-                        project.type
-                      )}`}
-                    >
-                      {getProjectTypeName(project.type)}
-                    </Badge>
-                    <span className="text-xs text-muted-foreground">
-                      Template: {project.template}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? "Saving..." : "Save"}
-              </Button>
-
-              <Button variant="outline" size="sm">
-                <Share className="w-4 h-4 mr-2" />
-                Share
-              </Button>
-
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4 mr-2" />
-                Settings
-              </Button>
-            </div>
-          </header>
-
-          {/* Main Content */}
-          <div className="flex-1 flex overflow-hidden">
-            {/* Left Sidebar - Components */}
-            {showSidebar ? (
-              <div className="relative h-full">
-                <ComponentSidebar
-                  projectType={project.type}
-                  onDragStart={() => {}}
-                />
-                <button
-                  className="absolute top-2 right-0 z-30 bg-card border border-border rounded-l px-1 py-1 hover:bg-muted"
-                  style={{ transform: "translateX(100%)" }}
-                  onClick={() => setShowSidebar(false)}
-                  aria-label="Hide sidebar"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-              </div>
-            ) : (
-              <button
-                className="h-10 w-6 flex items-center justify-center bg-card border-r border-border hover:bg-muted z-30"
-                onClick={() => setShowSidebar(true)}
-                aria-label="Show sidebar"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Center - Canvas */}
-            <div className="flex-1 min-w-0 h-full relative">
-              <ProjectCanvas
-                blocks={project.blocks}
-                connections={project.connections}
-                onBlockAdd={handleBlockAdd}
-                onBlockUpdate={handleBlockUpdate}
-                onBlockDelete={handleBlockDelete}
-                onConnectionAdd={handleConnectionAdd}
-                onConnectionDelete={handleConnectionDelete}
-                onSimulate={handleSimulationStart}
-                isSimulating={isSimulating}
-                showGrid={true}
-              />
-            </div>
-
-            {/* Show SimulationPanel icon (when hidden) - always at far right edge */}
-            {!showSimPanel && (
-              <button
-                className="absolute top-20 right-0 z-40 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
-                style={{ height: "40px" }}
-                onClick={() => setShowSimPanel(true)}
-                aria-label="Show simulation panel"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-            )}
-
-            {/* Right Sidebar - Simulation */}
-            {showSimPanel && (
-              <div className="relative h-full">
-                <SimulationPanel
-                  blocks={project.blocks}
-                  connections={project.connections}
-                  isSimulating={isSimulating}
-                  onStart={handleSimulationStart}
-                  onStop={handleSimulationStop}
-                  onReset={handleSimulationReset}
-                />
-                <button
-                  className="absolute top-2 left-0 z-30 bg-card border border-border rounded-r px-1 py-1 hover:bg-muted"
-                  style={{ transform: "translateX(-100%)" }}
-                  onClick={() => setShowSimPanel(false)}
-                  aria-label="Hide simulation panel"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Status Bar */}
-          <div className="h-8 bg-card border-t border-border flex items-center justify-between px-6 text-xs text-muted-foreground">
-            <div className="flex items-center space-x-4">
-              <span>Blocks: {project.blocks.length}</span>
-              <span>Connections: {project.connections.length}</span>
-            </div>
-            <div className="flex items-center space-x-4">
-              <span>Status: {isSimulating ? "Running" : "Stopped"}</span>
-              <span>Last saved: Just now</span>
-            </div>
-          </div>
-        </div>
+        <FlowBuilder
+          projectName={project.name}
+          initialNodes={project.nodes}
+          initialEdges={project.edges}
+          onBack={handleBack}
+          onSave={handleSave}
+        />
       </SignedIn>
     </>
   );
