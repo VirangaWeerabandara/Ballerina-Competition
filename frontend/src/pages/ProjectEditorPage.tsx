@@ -15,6 +15,7 @@ const ProjectEditorPage = () => {
   const { projectId } = useParams();
   const location = useLocation();
   const navigate = useNavigate();
+  const { user, isSignedIn, isLoading } = useAsgardeo();
 
   // Helper to get query params
   function getQueryParam(param: string) {
@@ -30,8 +31,21 @@ const ProjectEditorPage = () => {
     edges: [],
   });
 
+  // Prevent redirects when user is authenticated and on project editor page
+  useEffect(() => {
+    if (isLoading) return; // Wait for authentication to load
+
+    if (!isSignedIn && !isLoading) {
+      // Only redirect if user is not signed in and not loading
+      console.log("ProjectEditorPage: User not signed in, redirecting to home");
+      navigate("/", { replace: true });
+    }
+  }, [isSignedIn, isLoading, navigate]);
+
   // Load project data or example data
   useEffect(() => {
+    if (!projectId) return;
+
     const isExample = getQueryParam("example") === "true";
     if (isExample && projectId && exampleProjectData[projectId]) {
       setProject(exampleProjectData[projectId]);
@@ -64,6 +78,7 @@ const ProjectEditorPage = () => {
             });
           }
         } catch (e) {
+          console.error("Error fetching project:", e);
           // fallback: show empty project
           setProject({
             id: projectId,
@@ -79,7 +94,6 @@ const ProjectEditorPage = () => {
     }
   }, [projectId, location.search]);
 
-  const { user } = useAsgardeo();
   const handleSave = async (projectData: any) => {
     console.log("Saving project:", projectData);
     // Save to backend
@@ -127,6 +141,18 @@ const ProjectEditorPage = () => {
     navigate("/projects");
   };
 
+  // Show loading while authentication is being determined
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+          <p className="text-muted-foreground">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
       <SignedOut>
@@ -148,6 +174,7 @@ const ProjectEditorPage = () => {
       <SignedIn>
         <FlowBuilder
           projectName={project.name}
+          projectType={project.type}
           initialNodes={project.nodes}
           initialEdges={project.edges}
           onBack={handleBack}

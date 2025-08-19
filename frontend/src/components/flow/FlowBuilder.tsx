@@ -25,6 +25,7 @@ import { Node, Edge } from "reactflow";
 
 interface FlowBuilderProps {
   projectName?: string;
+  projectType?: "rest-api" | "graphql" | "websocket";
   initialNodes?: Node[];
   initialEdges?: Edge[];
   onBack?: () => void;
@@ -34,6 +35,7 @@ interface FlowBuilderProps {
 import { useEffect } from "react";
 const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   projectName = "Untitled API Project",
+  projectType = "rest-api",
   initialNodes = [],
   initialEdges = [],
   onBack,
@@ -139,9 +141,19 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                 />
                 <Badge
                   variant="outline"
-                  className="ml-0 bg-white/40 text-blue-400 border-blue-300/30 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold"
+                  className={`ml-0 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold ${
+                    projectType === "graphql"
+                      ? "bg-primary-purple/10 text-primary-purple border-primary-purple/30"
+                      : projectType === "websocket"
+                      ? "bg-primary-emerald/10 text-primary-emerald border-primary-emerald/30"
+                      : "bg-primary-blue/10 text-primary-blue border-primary-blue/30"
+                  }`}
                 >
-                  REST API
+                  {projectType === "graphql"
+                    ? "GraphQL"
+                    : projectType === "websocket"
+                    ? "WebSocket"
+                    : "REST API"}
                 </Badge>
               </div>
             </div>
@@ -187,7 +199,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
           {/* Component Palette */}
           {showComponentPalette ? (
             <div className="relative">
-              <FlowPalette />
+              <FlowPalette projectType={projectType} />
               <button
                 className="absolute top-2 right-0 z-30 bg-white/60 rounded-l px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
                 style={{ transform: "translateX(100%)" }}
@@ -233,29 +245,8 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                 <ChevronRight className="w-4 h-4" />
               </button>
               <SimulationPanel
-                blocks={nodes.map((node) => ({
-                  instanceId: node.id,
-                  id: node.data.type,
-                  name: node.data.label,
-                  type: node.data.type,
-                  category: node.data.category,
-                  description: node.data.description,
-                  icon: node.data.icon,
-                  color: node.data.color,
-                  inputs: node.data.inputs,
-                  outputs: node.data.outputs,
-                  x: node.position.x,
-                  y: node.position.y,
-                  width: 200,
-                  height: 120,
-                }))}
-                connections={edges.map((edge) => ({
-                  id: edge.id,
-                  fromBlockId: edge.source,
-                  fromPort: parseInt(edge.sourceHandle?.split("-")[1] || "0"),
-                  toBlockId: edge.target,
-                  toPort: parseInt(edge.targetHandle?.split("-")[1] || "0"),
-                }))}
+                blocks={nodes}
+                connections={edges}
                 isSimulating={isSimulating}
                 onStart={handleSimulation}
                 onStop={handleSimulation}

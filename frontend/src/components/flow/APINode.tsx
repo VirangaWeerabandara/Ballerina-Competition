@@ -54,6 +54,7 @@ interface APINodeData {
   category: string;
   icon: string;
   color: string;
+  bgColor: string;
   inputs: number;
   outputs: number;
   description: string;
@@ -98,9 +99,9 @@ const APINode: React.FC<NodeProps<APINodeData>> = ({ data, id, selected }) => {
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center space-x-2 flex-1 min-w-0">
             <div
-              className={`w-8 h-8 rounded-md ${data.color} text-white flex items-center justify-center flex-shrink-0 shadow-sm`}
+              className={`w-8 h-8 rounded-md flex items-center justify-center flex-shrink-0 shadow-sm border border-border/30 ${data.bgColor}`}
             >
-              <IconComponent className="w-4 h-4" />
+              <IconComponent className={`w-4 h-4 ${data.color}`} />
             </div>
             <div>
               <div className="font-medium text-sm truncate">{data.label}</div>
