@@ -17,8 +17,18 @@ service class WebSocketService {
     remote function onTextMessage(websocket:Caller caller, string message) returns error? {
         log:printInfo("Received message: " + message);
         
-        // Echo back the message for now
-        check caller->writeTextMessage("Echo: " + message);
+        // Enhanced echo with basic JSON support
+        string response = "";
+        
+        if message.startsWith("{") {
+            // Handle JSON messages
+            response = "{\"type\":\"response\",\"original\":" + message + ",\"connectionId\":\"" + self.connectionId + "\"}";
+        } else {
+            // Handle plain text messages
+            response = "{\"type\":\"echo\",\"message\":\"" + message + "\",\"connectionId\":\"" + self.connectionId + "\"}";
+        }
+        
+        check caller->writeTextMessage(response);
     }
     
     // Handle connection close

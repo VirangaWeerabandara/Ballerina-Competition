@@ -20,6 +20,10 @@ public function main() returns error? {
     }
     
     io:println("Application started successfully!");
+    io:println("WebSocket service is available at ws://localhost:9091/ws");
+    
+    // Keep the application running
+    io:readln("Press enter to exit...");
     
     // Don't forget to close the connection when the application shuts down
     check database:dbClient.close();
