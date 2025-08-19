@@ -174,6 +174,7 @@ const ProjectEditorPage = () => {
       <SignedIn>
         <FlowBuilder
           projectName={project.name}
+          projectType={project.type}
           initialNodes={project.nodes}
           initialEdges={project.edges}
           onBack={handleBack}

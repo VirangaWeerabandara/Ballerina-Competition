@@ -30,6 +30,10 @@ import {
   FileText,
   Loader2,
   Pause,
+  MessageSquare,
+  ExternalLink,
+  Settings,
+  Bell,
 } from "lucide-react";
 import { Node, Edge } from "reactflow";
 
@@ -110,7 +114,8 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   // Educational content for different block types
   const getBlockExplanation = (blockType: string, action: string) => {
     const explanations = {
-      "get-endpoint": {
+      // REST API components
+      "endpoint-get": {
         start:
           "This GET endpoint receives HTTP requests from clients. It's like a reception desk that handles incoming requests.",
         process:
@@ -118,7 +123,7 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
         complete:
           "Data is successfully retrieved and formatted as a JSON response to send back to the client.",
       },
-      "post-endpoint": {
+      "endpoint-post": {
         start:
           "This POST endpoint receives data from clients to create or update resources. It's like a form submission handler.",
         process:
@@ -126,6 +131,121 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
         complete:
           "The new resource is successfully created and stored in the database.",
       },
+      "endpoint-put": {
+        start:
+          "This PUT endpoint receives data to completely replace an existing resource.",
+        process:
+          "The endpoint validates the data and prepares to update the resource.",
+        complete: "The resource is successfully updated with the new data.",
+      },
+      "endpoint-delete": {
+        start:
+          "This DELETE endpoint receives requests to remove resources from the system.",
+        process:
+          "The endpoint validates the request and prepares to remove the resource.",
+        complete: "The resource is successfully deleted from the system.",
+      },
+      "endpoint-patch": {
+        start:
+          "This PATCH endpoint receives partial updates for existing resources.",
+        process:
+          "The endpoint validates the partial data and prepares to update specific fields.",
+        complete:
+          "The resource is successfully updated with the partial changes.",
+      },
+
+      // GraphQL components
+      "graphql-endpoint": {
+        start:
+          "This GraphQL endpoint receives GraphQL queries and mutations from clients.",
+        process:
+          "The endpoint parses the GraphQL query, validates the schema, and routes to appropriate resolvers.",
+        complete:
+          "The GraphQL response is successfully generated and sent back to the client.",
+      },
+      "graphql-playground": {
+        start:
+          "The GraphQL Playground is loading the interactive development environment.",
+        process:
+          "The playground is connecting to the GraphQL schema and introspection.",
+        complete:
+          "The GraphQL Playground is ready for testing queries and mutations.",
+      },
+      "query-resolver": {
+        start:
+          "This GraphQL query resolver is processing a data retrieval request.",
+        process:
+          "The resolver is fetching data from the data source according to the query structure.",
+        complete:
+          "The query data is successfully resolved and formatted for the response.",
+      },
+      "mutation-resolver": {
+        start:
+          "This GraphQL mutation resolver is processing a data modification request.",
+        process:
+          "The resolver is executing the mutation operation and updating the data source.",
+        complete:
+          "The mutation is successfully completed and the updated data is returned.",
+      },
+      "subscription-resolver": {
+        start:
+          "This GraphQL subscription resolver is setting up a real-time data stream.",
+        process:
+          "The resolver is establishing the subscription connection and monitoring for changes.",
+        complete:
+          "The subscription is active and ready to stream real-time updates.",
+      },
+      "schema-definition": {
+        start: "The GraphQL schema is being loaded and validated.",
+        process:
+          "The schema is parsing type definitions, directives, and field resolvers.",
+        complete:
+          "The GraphQL schema is successfully loaded and ready for queries.",
+      },
+
+      // WebSocket components
+      "websocket-server": {
+        start:
+          "The WebSocket server is starting up and listening for connections.",
+        process:
+          "The server is handling incoming WebSocket connection requests and upgrading HTTP connections.",
+        complete:
+          "The WebSocket server is running and ready to accept client connections.",
+      },
+      "websocket-client": {
+        start:
+          "The WebSocket client is establishing a connection to the external server.",
+        process:
+          "The client is negotiating the WebSocket protocol and establishing the connection.",
+        complete:
+          "The WebSocket connection is successfully established and ready for communication.",
+      },
+      "room-manager": {
+        start:
+          "The room manager is initializing and setting up chat rooms and channels.",
+        process:
+          "The manager is creating room instances and setting up event handlers for each room.",
+        complete:
+          "All rooms are successfully created and ready to accept users.",
+      },
+      broadcast: {
+        start:
+          "The broadcast service is starting up to handle message broadcasting.",
+        process:
+          "The service is connecting to the WebSocket server and setting up broadcast channels.",
+        complete:
+          "The broadcast service is active and ready to send messages to all connected clients.",
+      },
+      "connection-pool": {
+        start:
+          "The connection pool is initializing to manage WebSocket connections.",
+        process:
+          "The pool is setting up connection limits, timeouts, and lifecycle management.",
+        complete:
+          "The connection pool is ready to manage WebSocket connections efficiently.",
+      },
+
+      // Shared components
       database: {
         start:
           "The database component establishes a secure connection to the data storage system.",
@@ -140,6 +260,51 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
         process: "Checking user permissions and validating the security token.",
         complete:
           "User is authenticated and authorized to access the requested resource.",
+      },
+      cache: {
+        start:
+          "The cache service is initializing to store frequently accessed data.",
+        process:
+          "Checking if the requested data exists in cache, retrieving or storing as needed.",
+        complete:
+          "Cache operation completed successfully, improving response time for future requests.",
+      },
+      "external-api": {
+        start:
+          "The external API service is establishing a connection to the third-party service.",
+        process:
+          "Making the API request with proper authentication and handling the response.",
+        complete:
+          "External API call completed successfully, data is ready for processing.",
+      },
+      "middleware-auth": {
+        start: "Authentication middleware is validating the incoming request.",
+        process:
+          "Checking JWT tokens, session data, or other authentication credentials.",
+        complete:
+          "Request is authenticated and authorized to proceed to the next step.",
+      },
+      "middleware-cors": {
+        start:
+          "CORS middleware is checking the origin of the incoming request.",
+        process:
+          "Validating the request origin against allowed domains and setting CORS headers.",
+        complete:
+          "CORS validation completed, request can proceed if origin is allowed.",
+      },
+      "middleware-rate-limit": {
+        start: "Rate limiting middleware is checking the request frequency.",
+        process:
+          "Counting requests per IP address and checking against rate limits.",
+        complete:
+          "Rate limit check completed, request can proceed if within limits.",
+      },
+      "middleware-logging": {
+        start: "Logging middleware is preparing to record the request details.",
+        process:
+          "Capturing request method, URL, headers, and timing information.",
+        complete:
+          "Request logged successfully for monitoring and debugging purposes.",
       },
     };
 
@@ -303,19 +468,81 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   };
 
   const getBlockIcon = (blockType: string, className = "w-4 h-4") => {
+    // REST API endpoints
     if (
       blockType.includes("endpoint") ||
       blockType.includes("get") ||
-      blockType.includes("post")
+      blockType.includes("post") ||
+      blockType.includes("put") ||
+      blockType.includes("delete") ||
+      blockType.includes("patch")
     ) {
       return <Globe className={className} />;
     }
-    if (blockType.includes("database")) {
+
+    // GraphQL components
+    if (blockType.includes("graphql")) {
       return <Database className={className} />;
     }
-    if (blockType.includes("auth")) {
+    if (blockType.includes("resolver") || blockType.includes("schema")) {
+      return <FileText className={className} />;
+    }
+
+    // WebSocket components
+    if (blockType.includes("websocket")) {
+      return <MessageSquare className={className} />;
+    }
+    if (
+      blockType.includes("room") ||
+      blockType.includes("broadcast") ||
+      blockType.includes("connection")
+    ) {
+      return <Users className={className} />;
+    }
+
+    // Database and storage
+    if (blockType.includes("database") || blockType.includes("file-storage")) {
+      return <Database className={className} />;
+    }
+
+    // Authentication and security
+    if (blockType.includes("auth") || blockType.includes("middleware-auth")) {
       return <Shield className={className} />;
     }
+
+    // Cache and performance
+    if (blockType.includes("cache")) {
+      return <Zap className={className} />;
+    }
+
+    // External services
+    if (blockType.includes("external") || blockType.includes("webhook")) {
+      return <ExternalLink className={className} />;
+    }
+
+    // Middleware
+    if (blockType.includes("middleware")) {
+      return <Settings className={className} />;
+    }
+
+    // Processing
+    if (
+      blockType.includes("validation") ||
+      blockType.includes("transformation")
+    ) {
+      return <CheckCircle className={className} />;
+    }
+
+    // Communication
+    if (
+      blockType.includes("email") ||
+      blockType.includes("notification") ||
+      blockType.includes("queue")
+    ) {
+      return <Bell className={className} />;
+    }
+
+    // Default fallback
     return <Server className={className} />;
   };
 

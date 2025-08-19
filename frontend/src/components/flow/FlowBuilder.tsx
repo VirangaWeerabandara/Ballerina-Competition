@@ -25,6 +25,7 @@ import { Node, Edge } from "reactflow";
 
 interface FlowBuilderProps {
   projectName?: string;
+  projectType?: "rest-api" | "graphql" | "websocket";
   initialNodes?: Node[];
   initialEdges?: Edge[];
   onBack?: () => void;
@@ -34,6 +35,7 @@ interface FlowBuilderProps {
 import { useEffect } from "react";
 const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   projectName = "Untitled API Project",
+  projectType = "rest-api",
   initialNodes = [],
   initialEdges = [],
   onBack,
@@ -187,7 +189,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
           {/* Component Palette */}
           {showComponentPalette ? (
             <div className="relative">
-              <FlowPalette />
+              <FlowPalette projectType={projectType} />
               <button
                 className="absolute top-2 right-0 z-30 bg-white/60 rounded-l px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
                 style={{ transform: "translateX(100%)" }}

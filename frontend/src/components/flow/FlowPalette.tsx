@@ -23,10 +23,7 @@ import {
   Layers,
   RotateCcw,
 } from "lucide-react";
-import {
-  REST_API_COMPONENTS,
-  getComponentsByCategory,
-} from "@/data/api-components";
+import { getComponentsByCategory } from "@/data/api-components";
 import { APIComponent } from "@/types/api-builder";
 
 const iconMap = {
@@ -106,7 +103,11 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
   );
 };
 
-const FlowPalette: React.FC = () => {
+interface FlowPaletteProps {
+  projectType: "rest-api" | "graphql" | "websocket";
+}
+
+const FlowPalette: React.FC<FlowPaletteProps> = ({ projectType }) => {
   const categories = [
     "Endpoints",
     "Middleware",
@@ -117,12 +118,27 @@ const FlowPalette: React.FC = () => {
     "External",
   ];
 
-  const allCategories = getComponentsByCategory();
+  const allCategories = getComponentsByCategory(projectType);
+
+  const getProjectTypeDisplayName = (type: string) => {
+    switch (type) {
+      case "rest-api":
+        return "REST API";
+      case "graphql":
+        return "GraphQL";
+      case "websocket":
+        return "WebSocket";
+      default:
+        return "API";
+    }
+  };
 
   return (
     <div className="w-80 bg-white/60 h-full flex flex-col backdrop-blur-2xl shadow-lg">
       <div className="p-4">
-        <h2 className="text-lg font-semibold">API Components</h2>
+        <h2 className="text-lg font-semibold">
+          {getProjectTypeDisplayName(projectType)} Components
+        </h2>
         <p className="text-sm text-muted-foreground">
           Drag components to the canvas
         </p>
