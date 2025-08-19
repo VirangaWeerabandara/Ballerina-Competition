@@ -18,14 +18,8 @@ Follow these steps to set up and run the backend service:
   ```
   This will create the required tables and types.
 
-### 3. Populate Sample Data
 
-- Run the sample data script to populate the tables:
-  ```
-  backend/resources/sample_data.sql
-  ```
-
-### 4. Create the `Config.toml` File
+### 3. Create the `Config.toml` File
 
 - In the `backend` folder, create a file named `Config.toml` with the following content (replace values as needed):
 
@@ -49,7 +43,7 @@ Follow these steps to set up and run the backend service:
   database = "oneblok"
   ```
 
-### 5. Run the Ballerina Backend
+### 4. Run the Ballerina Backend
 
 - Open a terminal/console inside the `backend` folder.
 - Run the following command:

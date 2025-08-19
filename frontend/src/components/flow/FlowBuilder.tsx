@@ -141,7 +141,13 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                 />
                 <Badge
                   variant="outline"
-                  className="ml-0 bg-white/40 text-blue-400 border-blue-300/30 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold"
+                  className={`ml-0 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold ${
+                    projectType === "graphql"
+                      ? "bg-primary-purple/10 text-primary-purple border-primary-purple/30"
+                      : projectType === "websocket"
+                      ? "bg-primary-emerald/10 text-primary-emerald border-primary-emerald/30"
+                      : "bg-primary-blue/10 text-primary-blue border-primary-blue/30"
+                  }`}
                 >
                   {projectType === "graphql"
                     ? "GraphQL"

@@ -15,6 +15,7 @@ interface ProjectTemplate {
   description: string;
   icon: React.ReactNode;
   color: string;
+  bgColor: string;
   features: string[];
 }
 
@@ -42,7 +43,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       name: "REST API",
       description: "Build RESTful web services with HTTP endpoints",
       icon: <Globe className="w-8 h-8" />,
-      color: "bg-blue-500",
+      color: "text-primary-blue",
+      bgColor: "bg-primary-blue/10",
       features: [
         "HTTP Methods",
         "Route Parameters",
@@ -55,7 +57,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       name: "GraphQL API",
       description: "Create flexible GraphQL APIs with resolvers",
       icon: <Database className="w-8 h-8" />,
-      color: "bg-purple-500",
+      color: "text-primary-purple",
+      bgColor: "bg-primary-purple/10",
       features: ["Queries", "Mutations", "Subscriptions", "Schema Definition"],
     },
     {
@@ -63,7 +66,8 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
       name: "WebSocket",
       description: "Real-time communication with WebSocket connections",
       icon: <MessageSquare className="w-8 h-8" />,
-      color: "bg-green-500",
+      color: "text-primary-emerald",
+      bgColor: "bg-primary-emerald/10",
       features: [
         "Real-time Events",
         "Bidirectional Communication",
@@ -116,7 +120,7 @@ const CreateProjectModal: React.FC<CreateProjectModalProps> = ({
                   >
                     <CardContent className="p-6 text-center">
                       <div
-                        className={`w-16 h-16 rounded-full ${type.color} text-white flex items-center justify-center mx-auto mb-4`}
+                        className={`w-16 h-16 rounded-full ${type.bgColor} ${type.color} flex items-center justify-center mx-auto mb-4 border border-border/30`}
                       >
                         {type.icon}
                       </div>
