@@ -79,13 +79,11 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   });
   const [simulationSpeed, setSimulationSpeed] = useState(5000); // 5 seconds per step (much slower default)
 
-  // Store timeouts for cleanup
-  const [timeoutIds, setTimeoutIds] = useState<NodeJS.Timeout[]>([]);
-
-  // Cleanup function to clear all timeouts
+  // Store timeouts for cleanup (ref to avoid stale closure)
+  const timeoutIdsRef = React.useRef<NodeJS.Timeout[]>([]);
   const clearAllTimeouts = () => {
-    timeoutIds.forEach((id) => clearTimeout(id));
-    setTimeoutIds([]);
+    timeoutIdsRef.current.forEach((id) => clearTimeout(id));
+    timeoutIdsRef.current = [];
   };
 
   // Cleanup on unmount or when simulation stops
@@ -317,62 +315,62 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   };
 
   // Simulate the backend service execution with better pacing and explanations
-  useEffect(() => {
-    if (!isSimulating) return;
 
-    let stepCounter = 0;
-    const totalSteps = Math.max(blocks.length * 3, 6); // At least 6 steps for educational purposes
-    const newTimeoutIds: NodeJS.Timeout[] = [];
+  useEffect(() => {
+    if (!isSimulating || isPaused) return;
+
+    let stepCounter = currentStep;
+    const totalSteps = Math.max(blocks.length * 3, 6);
 
     const runSimulationStep = () => {
-      if (stepCounter >= totalSteps || !isSimulating || isPaused) {
-        if (stepCounter >= totalSteps) {
-          onStop();
-        }
+      // Always check latest state before running
+      if (!isSimulating || isPaused) return;
+      if (stepCounter >= totalSteps) {
+        onStop();
         return;
       }
-
       stepCounter++;
       setCurrentStep(stepCounter);
 
       // Find blocks that can be processed at this step
       const availableBlocks = blocks.filter((block) => {
-        // Entry points (no incoming connections) can start immediately
         const isEntryPoint = connections.every(
           (conn) => conn.target !== block.id
         );
         if (isEntryPoint && stepCounter <= 2) return true;
-
-        // Other blocks can be processed after their dependencies
         const hasDependencies = connections.some(
           (conn) => conn.target === block.id
         );
         if (hasDependencies && stepCounter > 2) return true;
-
         return false;
       });
 
       if (availableBlocks.length > 0) {
         const selectedBlock =
           availableBlocks[Math.floor(Math.random() * availableBlocks.length)];
-
-        // Simulate the three phases of processing
-        simulateBlockProcessing(selectedBlock, stepCounter, newTimeoutIds);
+        simulateBlockProcessing(
+          selectedBlock,
+          stepCounter,
+          timeoutIdsRef.current
+        );
       }
 
       // Schedule next step (only if not paused and still simulating)
       if (!isPaused && isSimulating) {
         const timeoutId = setTimeout(runSimulationStep, simulationSpeed);
-        newTimeoutIds.push(timeoutId);
+        timeoutIdsRef.current.push(timeoutId);
       }
     };
 
     // Start the simulation after a brief delay
     const initialTimeoutId = setTimeout(runSimulationStep, 2000);
-    newTimeoutIds.push(initialTimeoutId);
+    timeoutIdsRef.current.push(initialTimeoutId);
 
-    // Store all timeout IDs for cleanup
-    setTimeoutIds(newTimeoutIds);
+    // Cleanup on effect re-run
+    return () => {
+      clearAllTimeouts();
+    };
+    // eslint-disable-next-line
   }, [isSimulating, blocks, connections, simulationSpeed, isPaused]);
 
   // Simulate block processing with three phases
@@ -547,10 +545,7 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
   };
 
   const handleReset = () => {
-    // Clear all timeouts first
     clearAllTimeouts();
-
-    // Reset all state
     setLogs([]);
     setActiveBlocks(new Set());
     setCurrentStep(0);
@@ -562,21 +557,18 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
       averageResponseTime: 0,
       uptime: 0,
     });
-
-    // Call the parent reset function
     onReset();
   };
 
   const handleSpeedChange = (speed: number) => {
+    clearAllTimeouts();
     setSimulationSpeed(speed);
   };
 
   const handlePauseToggle = () => {
     if (isPaused) {
-      // Resume simulation
       setIsPaused(false);
     } else {
-      // Pause simulation - clear all pending timeouts
       clearAllTimeouts();
       setIsPaused(true);
     }
