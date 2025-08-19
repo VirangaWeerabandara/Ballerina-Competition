@@ -686,7 +686,7 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
           <div className="flex items-center space-x-2">
             <span className="text-xs text-muted-foreground">Speed:</span>
             <div className="flex space-x-1">
-              {[1000, 2000, 3000, 5000].map((speed) => (
+              {[2000, 4000, 6000, 8000].map((speed) => (
                 <Button
                   key={speed}
                   size="sm"
@@ -694,11 +694,11 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
                   className="h-6 px-2 text-xs"
                   onClick={() => handleSpeedChange(speed)}
                 >
-                  {speed === 1000
+                  {speed === 2000
                     ? "Fast"
-                    : speed === 2000
+                    : speed === 4000
                     ? "Normal"
-                    : speed === 3000
+                    : speed === 6000
                     ? "Slow"
                     : "Very Slow"}
                 </Button>
