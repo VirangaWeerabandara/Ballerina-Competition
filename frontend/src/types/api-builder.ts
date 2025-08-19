@@ -5,7 +5,8 @@ export interface APIComponent {
   description: string;
   category: ComponentCategory;
   icon: string; // Icon name from lucide-react
-  color: string; // Tailwind color class
+  color: string; // Text color class
+  bgColor: string; // Background color class
   inputs: number;
   outputs: number;
   config?: Record<string, any>;

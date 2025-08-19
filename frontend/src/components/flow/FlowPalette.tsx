@@ -56,9 +56,9 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
   component,
 }) => {
   const IconComponent =
-    iconMap[component.icon as keyof typeof iconMap] || Database;
+    iconMap[component.icon as keyof typeof iconMap] || Globe;
 
-  const onDragStart = (event: React.DragEvent, component: APIComponent) => {
+  const handleDragStart = (event: React.DragEvent) => {
     event.dataTransfer.setData(
       "application/reactflow",
       JSON.stringify(component)
@@ -68,16 +68,16 @@ const DraggableComponent: React.FC<DraggableComponentProps> = ({
 
   return (
     <Card
-      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border-2 border-transparent hover:border-primary/20"
+      className="cursor-grab active:cursor-grabbing hover:shadow-md transition-all duration-200 border border-border/50 hover:border-border"
       draggable
-      onDragStart={(event) => onDragStart(event, component)}
+      onDragStart={handleDragStart}
     >
       <CardContent className="p-3">
-        <div className="flex items-center space-x-3">
+        <div className="flex items-start space-x-3">
           <div
-            className={`w-10 h-10 rounded-lg ${component.color} text-white flex items-center justify-center flex-shrink-0 shadow-sm`}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center border border-border/30 ${component.bgColor}`}
           >
-            <IconComponent className="w-5 h-5" />
+            <IconComponent className={`w-5 h-5 ${component.color}`} />
           </div>
           <div className="flex-1 min-w-0">
             <h4 className="text-sm font-medium truncate">{component.name}</h4>

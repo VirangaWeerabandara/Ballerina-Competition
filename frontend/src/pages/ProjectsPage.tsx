@@ -533,9 +533,6 @@ const ProjectsPage = () => {
               </div>
             ) : activeTab === "community" ? (
               <div className="mb-12">
-                <h2 className="text-xl font-semibold text-foreground mb-4">
-                  Community Projects
-                </h2>
                 {/* Search Bar for Community Projects */}
                 <div className="relative mb-8">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />

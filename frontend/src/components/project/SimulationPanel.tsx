@@ -872,10 +872,16 @@ const SimulationPanel: React.FC<SimulationPanelProps> = ({
                         >
                           <CardContent className="p-3">
                             <div className="flex items-center space-x-3">
-                              <div className="w-8 h-8 rounded bg-muted flex items-center justify-center border border-border">
+                              <div
+                                className={`w-8 h-8 rounded flex items-center justify-center border border-border/30 ${
+                                  block.data.bgColor || "bg-muted"
+                                }`}
+                              >
                                 {getBlockIcon(
                                   block.data.type,
-                                  "w-5 h-5 text-foreground"
+                                  `w-5 h-5 ${
+                                    block.data.color || "text-foreground"
+                                  }`
                                 )}
                               </div>
                               <div className="flex-1">

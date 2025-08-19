@@ -143,7 +143,11 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                   variant="outline"
                   className="ml-0 bg-white/40 text-blue-400 border-blue-300/30 backdrop-blur-sm shadow-sm px-2 py-1 text-xs font-semibold"
                 >
-                  REST API
+                  {projectType === "graphql"
+                    ? "GraphQL"
+                    : projectType === "websocket"
+                    ? "WebSocket"
+                    : "REST API"}
                 </Badge>
               </div>
             </div>
