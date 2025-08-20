@@ -147,15 +147,15 @@ const NavigationBar = () => {
                   <div className="text-muted-foreground">Loading...</div>
                 ) : isSignedIn ? (
                   <>
-                    {user?.photourl && (
+                    {user?.picture && (
                       <img
-                        src={user.photourl}
-                        alt={user.username}
-                        className="h-8 w-8 rounded-full border mb-1"
+                        src={user.picture}
+                        alt={user.givenName}
+                        className="h-8 w-8 rounded-full border"
                       />
                     )}
-                    <span className="text-muted-foreground font-medium mb-1">
-                      Welcome back {user?.givenname || user?.username}
+                    <span className="text-muted-foreground font-medium">
+                      Welcome back {user?.givenName}
                     </span>
                     <Button
                       onClick={() => signOut()}

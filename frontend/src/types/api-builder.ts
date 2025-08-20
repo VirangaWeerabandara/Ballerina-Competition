@@ -5,31 +5,11 @@ export interface APIComponent {
   description: string;
   category: ComponentCategory;
   icon: string; // Icon name from lucide-react
-  color: string; // Tailwind color class
+  color: string; // Text color class
+  bgColor: string; // Background color class
   inputs: number;
   outputs: number;
   config?: Record<string, any>;
-}
-
-export interface CanvasComponent extends APIComponent {
-  instanceId: string;
-  position: {
-    x: number;
-    y: number;
-  };
-  size: {
-    width: number;
-    height: number;
-  };
-}
-
-export interface Connection {
-  id: string;
-  sourceId: string;
-  sourcePort: number;
-  targetId: string;
-  targetPort: number;
-  animated?: boolean;
 }
 
 export type ComponentType =
@@ -38,6 +18,17 @@ export type ComponentType =
   | "endpoint-put"
   | "endpoint-delete"
   | "endpoint-patch"
+  | "graphql-endpoint"
+  | "graphql-playground"
+  | "query-resolver"
+  | "mutation-resolver"
+  | "subscription-resolver"
+  | "schema-definition"
+  | "websocket-server"
+  | "websocket-client"
+  | "room-manager"
+  | "broadcast"
+  | "connection-pool"
   | "middleware-auth"
   | "middleware-cors"
   | "middleware-rate-limit"
@@ -61,37 +52,3 @@ export type ComponentCategory =
   | "Processing"
   | "Storage"
   | "Communication";
-
-export interface SimulationStep {
-  id: string;
-  componentId: string;
-  timestamp: number;
-  type: "request" | "response" | "process" | "error";
-  message: string;
-  data?: any;
-  duration?: number;
-}
-
-export interface SimulationState {
-  isRunning: boolean;
-  steps: SimulationStep[];
-  currentStep: number;
-  speed: number; // 1x, 2x, 0.5x
-}
-
-export interface CanvasState {
-  components: CanvasComponent[];
-  connections: Connection[];
-  selectedComponent: string | null;
-  viewportOffset: { x: number; y: number };
-  zoom: number;
-}
-
-export interface APIFlow {
-  id: string;
-  name: string;
-  canvas: CanvasState;
-  simulation: SimulationState;
-  created: Date;
-  modified: Date;
-}

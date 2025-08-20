@@ -3,10 +3,24 @@ import { Badge } from "@/components/ui/badge";
 import { Code, Zap } from "lucide-react";
 import { useAsgardeo } from "@asgardeo/react";
 import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const HeroSection = () => {
-  const { isSignedIn, signIn } = useAsgardeo();
+  const { isSignedIn, signIn, user,} = useAsgardeo();
   const navigate = useNavigate();
+
+
+  async function registerUser(jwtToken: string) {
+  await fetch("http://localhost:9090/users/register", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${jwtToken}`,
+      "Content-Type": "application/json",
+    },
+  });
+  }
+
+  
 
   const handleStartBuilding = () => {
     if (isSignedIn) {

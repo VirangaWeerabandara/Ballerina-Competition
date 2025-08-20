@@ -86,6 +86,7 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
           category: component.category,
           icon: component.icon,
           color: component.color,
+          bgColor: component.bgColor,
           inputs: component.inputs,
           outputs: component.outputs,
           description: component.description,
@@ -120,7 +121,7 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
         onDragOver={onDragOver}
         nodeTypes={nodeTypes}
         fitView
-        className="bg-gray-50"
+        className="bg-gray-200"
       >
         <Controls />
         <MiniMap />

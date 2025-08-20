@@ -7,17 +7,17 @@ import Index from "./pages/Index";
 import ProjectsPage from "./pages/ProjectsPage";
 import NotFound from "./pages/NotFound";
 import ProjectEditorPage from "./pages/ProjectEditorPage";
-// import AuthHandler from "./components/auth";
+import AuthHandler from "./components/auth/AuthHandler";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      {/* <AuthHandler /> */}
       <Toaster />
       <Sonner />
       <BrowserRouter>
+        <AuthHandler />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/projects" element={<ProjectsPage />} />

@@ -1,60 +1,54 @@
-# Database Setup Guide
+## Ballerina Backend Setup & Run Instructions
 
-This guide will help you set up the PostgreSQL database for the oneBlok project.
+Follow these steps to set up and run the backend service:
 
-## Prerequisites
+### 1. Create the PostgreSQL Database
 
-- PostgreSQL 12 or higher installed on your system
-- Access to PostgreSQL command line tools (`psql`) or a GUI client like pgAdmin
-
-## Setup Instructions
-
-### 1. Create the Database
-
-Connect to PostgreSQL as a superuser (usually `postgres`) and create the database from pdAdmin app:
-
-
-# Create the database
-Database Name = "oneblok_db"
-
-
+- Make sure you have PostgreSQL installed and running.
+- Create a new database for this project (e.g., `oneblok`):
+  ```sql
+  CREATE DATABASE oneblok;
+  ```
 
 ### 2. Run the Database Schema
 
-Navigate to the backend directory and run the SQL schema script:
+- In your PostgreSQL client, run the schema script located at:
+  ```
+  backend/resources/schema.sql
+  ```
+  This will create the required tables and types.
 
-```bash
-# From the backend directory
-psql -U postgres -h localhost -d oneblok_db -f resources/sql/schema.sql
-```
 
-This will create the following tables:
-- `users` - Store user account information
-- `projects` - Store project data with block layouts
-- `comments` - Store project comments and feedback
+### 3. Create the `Config.toml` File
 
-The script also creates:
-- Necessary indexes for query optimization
-- Triggers for automatic timestamp updates
-- Foreign key relationships between tables
+- In the `backend` folder, create a file named `Config.toml` with the following content (replace values as needed):
 
-### 3. Configure Database Connection
+  ```toml
+  [databaseConfig]
+  host = "localhost"
+  port = "<<PostgreSQL_DB_PORT>>"
+  username = "<<PostgreSQL_DB_USERNAME>>"
+  password = "<<PostgreSQL_DB_PASSWORD>>"
+  database = "<<PostgreSQL_DB_NAME>>"
+  ```
 
-Create a `Config.toml` file in the backend directory by copying from the example:
+  Example for default local setup:
 
-```bash
-# Copy the example configuration
-cp Config.example.toml Config.toml
-```
+  ```toml
+  [databaseConfig]
+  host = "localhost"
+  port = 5432
+  username = "postgres"
+  password = "yourpassword"
+  database = "oneblok"
+  ```
 
-Edit the `Config.toml` file with your database credentials:
+### 4. Run the Ballerina Backend
 
-```toml
-[oneblok.backend.database]
-host = "localhost"
-port = 5432
-database = "oneblok_db"
-user = "your_db_username"
-password = "your_db_password"
-```
+- Open a terminal/console inside the `backend` folder.
+- Run the following command:
+  ```sh
+  bal run
+  ```
 
+The backend service will start and listen on port 8080 by default.

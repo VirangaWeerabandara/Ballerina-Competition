@@ -24,9 +24,9 @@ const ContactSection = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-12 max-w-6xl mx-auto">
+        <div className="flex justify-center max-w-2xl mx-auto">
           {/* Contact Form */}
-          <Card className="border-2 hover:border-primary/50 transition-colors">
+          <Card className="border-2 hover:border-primary/50 transition-colors w-full">
             <CardHeader>
               <CardTitle className="flex items-center text-2xl">
                 <MessageSquare className="w-6 h-6 mr-3 text-primary" />
@@ -87,74 +87,6 @@ const ContactSection = () => {
               </Button>
             </CardContent>
           </Card>
-
-          {/* Contact Info */}
-          <div className="space-y-8">
-            <Card className="border-2 border-primary/20">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">
-                  Why Choose OneBlock?
-                </h3>
-                <div className="space-y-4">
-                  <div className="flex items-start space-x-4">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-3" />
-                    <div>
-                      <h4 className="font-semibold mb-1">Lightning Fast</h4>
-                      <p className="text-muted-foreground">
-                        Deploy and test your services in seconds, not hours.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-3" />
-                    <div>
-                      <h4 className="font-semibold mb-1">Developer Friendly</h4>
-                      <p className="text-muted-foreground">
-                        Intuitive interface designed by developers, for
-                        developers.
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-start space-x-4">
-                    <div className="w-2 h-2 bg-primary rounded-full mt-3" />
-                    <div>
-                      <h4 className="font-semibold mb-1">Enterprise Ready</h4>
-                      <p className="text-muted-foreground">
-                        Scalable architecture for teams of all sizes.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="border-2 border-accent-foreground/20">
-              <CardContent className="p-8">
-                <h3 className="text-2xl font-bold mb-6">Enterprise Support</h3>
-                <p className="text-muted-foreground mb-6">
-                  Need dedicated support for your team? Our enterprise plan
-                  includes:
-                </p>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full" />
-                    <span className="text-sm">24/7 Priority Support</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full" />
-                    <span className="text-sm">Custom Integration</span>
-                  </div>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-1.5 h-1.5 bg-accent-foreground rounded-full" />
-                    <span className="text-sm">Dedicated Account Manager</span>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full mt-6">
-                  Learn More
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </div>
     </section>

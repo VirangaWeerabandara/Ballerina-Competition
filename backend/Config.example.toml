@@ -1,6 +1,6 @@
-[oneblok.backend.database]
+[databaseConfig]
 host = "localhost"
-port = 5432
-database = "oneblok_db"
-user = "<<YOUR_DB_USER>>"
-password = "<<YOUR_DB_PASSWORD>>"
+port = "<<PostgreSQL_DB_PORT>>"
+username = "<<PostgreSQL_DB_USERNAME>>"
+password = "<<PostgreSQL_DB_PASSWORD>>"
+database = "<<PostgreSQL_DB_NAME>>"
