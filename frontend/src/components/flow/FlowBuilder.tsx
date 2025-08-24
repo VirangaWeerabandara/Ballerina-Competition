@@ -20,6 +20,7 @@ import FlowPalette from "./FlowPalette";
 import FlowCanvas from "./FlowCanvas";
 import SimulationPanel from "../project/SimulationPanel";
 import { useAsgardeo } from "@asgardeo/react";
+import { useDebouncedCallback } from "use-debounce";
 
 import { Node, Edge } from "reactflow";
 
@@ -44,6 +45,9 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+
+  const [saving, setSaving] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
 
   // Reset nodes/edges when initialNodes/initialEdges change (e.g., when loading a new example)
   useEffect(() => {
@@ -84,28 +88,37 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
     setCurrentName(projectName);
   }, [projectName]);
 
-  const handleSave = useCallback(() => {
+  const handleSave = useCallback(async () => {
+    setSaving(true);
+
     const projectData = {
       name: currentName,
-      nodes: nodes,
-      edges: edges,
-      isShared: !currentIsPrivate, // isShared is true when not private
+      nodes,
+      edges,
+      isShared: !currentIsPrivate,
       timestamp: new Date().toISOString(),
     };
 
     if (onSave) {
-      // Pass name and isShared as top-level fields for backend
-      onSave({
-        ...projectData,
-        name: currentName,
-        isShared: !currentIsPrivate,
-      });
+      await onSave(projectData);
     } else {
       localStorage.setItem("flow-builder-project", JSON.stringify(projectData));
       console.log("Project saved to localStorage");
     }
-    toast.success("Project saved!");
+
+    setSaving(false);
+    setLastSaved(new Date());
   }, [currentName, onSave, nodes, edges, currentIsPrivate]);
+
+  const debouncedSave = useDebouncedCallback(() => {
+    handleSave();
+  }, 1500);
+
+  useEffect(() => {
+    if (nodes.length || edges.length) {
+      debouncedSave();
+    }
+  }, [nodes, edges, currentName, currentIsPrivate]);
 
   return (
     <ReactFlowProvider>
@@ -272,7 +285,13 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
           </div>
           <div className="flex items-center space-x-4">
             <span>Auto-save enabled</span>
-            <span>Last saved: Just now</span>
+            <span>
+              {saving
+                ? "Saving..."
+                : lastSaved
+                ? `Last saved: ${lastSaved.toLocaleTimeString()}`
+                : "Last saved: Never"}
+            </span>
           </div>
         </div>
       </div>
