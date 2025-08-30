@@ -32,6 +32,17 @@ type Project record {|
     json blockLayout;
 |};
 
+// Comment record type
+type Comment record {|
+    string commentId;
+    string projectId;
+    string author;
+    string content;
+    string? parentCommentId;
+    int likesCount;
+    string createdAt;
+|};
+
 // HTTP listener
 listener http:Listener httpListener = new (8080);
 
@@ -375,6 +386,125 @@ service /api/projects on httpListener {
         }
 
         check resultStream.close();
+    }
+
+    // Comment endpoints
+    // 1. Get comments for a project
+    resource function get comments(http:Caller caller, http:Request req) returns error? {
+        string? projectId = req.getQueryParamValue("projectId");
+        
+        if projectId is () {
+            check caller->respond({"error": "Project ID parameter is required"});
+            return;
+        }
+
+        sql:ParameterizedQuery query = `SELECT commentId, projectId, author, content, parentCommentId, likesCount, createdAt 
+                                       FROM Comment WHERE projectId = ${projectId} ORDER BY createdAt ASC`;
+        
+        stream<Comment, sql:Error?> resultStream = self.dbClient->query(query, Comment);
+        
+        json[] comments = [];
+        
+        check from Comment comment in resultStream
+            do {
+                comments.push({
+                    "commentId": comment.commentId,
+                    "projectId": comment.projectId,
+                    "author": comment.author,
+                    "content": comment.content,
+                    "parentCommentId": comment.parentCommentId,
+                    "likesCount": comment.likesCount,
+                    "createdAt": comment.createdAt
+                });
+            };
+
+        check caller->respond({
+            "message": "Comments fetched successfully",
+            "comments": comments
+        });
+
+        check resultStream.close();
+    }
+
+    // 2. Add a new comment or reply
+    resource function post comments(http:Caller caller, http:Request req) returns error? {
+        json payload;
+        var payloadResult = req.getJsonPayload();
+        
+        if payloadResult is json {
+            payload = payloadResult;
+        } else {
+            check caller->respond({"error": "Invalid JSON payload"});
+            return;
+        }
+
+        // Extract comment details from payload
+        string commentId = (check payload.commentId).toString();
+        string projectId = (check payload.projectId).toString();
+        string author = (check payload.author).toString();
+        string content = (check payload.content).toString();
+        string? parentCommentId = check payload.parentCommentId;
+        int likesCount = check payload.likesCount;
+
+        // Validate required fields
+        if commentId == "" || projectId == "" || author == "" || content == "" {
+            check caller->respond({"error": "Missing required fields: commentId, projectId, author, content"});
+            return;
+        }
+
+        // Insert comment into database
+        sql:ParameterizedQuery query;
+        if parentCommentId is string {
+            query = `INSERT INTO Comment (commentId, projectId, author, content, parentCommentId, likesCount)
+                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${parentCommentId}, ${likesCount})`;
+        } else {
+            query = `INSERT INTO Comment (commentId, projectId, author, content, likesCount)
+                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${likesCount})`;
+        }
+
+        var result = self.dbClient->execute(query);
+
+        if result is sql:ExecutionResult {
+            log:printInfo("Comment created successfully");
+            
+            json createdComment = {
+                "commentId": commentId,
+                "projectId": projectId,
+                "author": author,
+                "content": content,
+                "parentCommentId": parentCommentId,
+                "likesCount": likesCount,
+                "createdAt": "now"
+            };
+
+            check caller->respond({
+                "message": "Comment created successfully",
+                "comment": createdComment
+            });
+        } else if result is error {
+            log:printError("Error occurred while creating comment", result);
+            check caller->respond({"error": "Failed to create comment"});
+        }
+    }
+
+    // 3. Like a comment
+    resource function put comments/[string commentId]/like(http:Caller caller, http:Request req) returns error? {
+        // Increment likes count for the comment
+        sql:ParameterizedQuery query = `UPDATE Comment SET likesCount = likesCount + 1 WHERE commentId = ${commentId}`;
+
+        var result = self.dbClient->execute(query);
+
+        if result is sql:ExecutionResult {
+            if result.affectedRowCount > 0 {
+                log:printInfo("Comment liked successfully");
+                check caller->respond({"message": "Comment liked successfully"});
+            } else {
+                check caller->respond({"error": "Comment not found"});
+            }
+        } else if result is error {
+            log:printError("Error occurred while liking comment", result);
+            check caller->respond({"error": "Failed to like comment"});
+        }
     }
 
     
