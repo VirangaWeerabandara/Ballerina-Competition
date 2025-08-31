@@ -1,6 +1,7 @@
 import ballerina/http;
 import ballerina/log;
 import ballerina/sql;
+import ballerina/time;
 import ballerinax/postgresql;
 import ballerinax/postgresql.driver as _;
 
@@ -443,8 +444,8 @@ service /api/projects on httpListener {
         string projectId = (check payload.projectId).toString();
         string author = (check payload.author).toString();
         string content = (check payload.content).toString();
-        string? parentCommentId = check payload.parentCommentId;
-        int likesCount = check payload.likesCount;
+        string? parentCommentId = payload.parentCommentId is string ? (check payload.parentCommentId).toString() : ();
+        int likesCount = payload.likesCount is int ? check payload.likesCount : 0;
 
         // Validate required fields
         if commentId == "" || projectId == "" || author == "" || content == "" {
@@ -454,12 +455,14 @@ service /api/projects on httpListener {
 
         // Insert comment into database
         sql:ParameterizedQuery query;
+        string currentTime = time:utcNow().toString();
+        
         if parentCommentId is string {
-            query = `INSERT INTO Comment (commentId, projectId, author, content, parentCommentId, likesCount)
-                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${parentCommentId}, ${likesCount})`;
+            query = `INSERT INTO Comment (commentId, projectId, author, content, parentCommentId, likesCount, createdAt)
+                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${parentCommentId}, ${likesCount}, ${currentTime})`;
         } else {
-            query = `INSERT INTO Comment (commentId, projectId, author, content, likesCount)
-                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${likesCount})`;
+            query = `INSERT INTO Comment (commentId, projectId, author, content, likesCount, createdAt)
+                    VALUES (${commentId}, ${projectId}, ${author}, ${content}, ${likesCount}, ${currentTime})`;
         }
 
         var result = self.dbClient->execute(query);

@@ -16,5 +16,5 @@ CREATE TABLE Comment (
     content TEXT NOT NULL,
     parentCommentId VARCHAR(255) NULL REFERENCES Comment(commentId) ON DELETE CASCADE,
     likesCount INTEGER DEFAULT 0,
-    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    createdAt VARCHAR(255) NOT NULL
 );
