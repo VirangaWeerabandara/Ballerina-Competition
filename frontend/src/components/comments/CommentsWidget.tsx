@@ -220,7 +220,6 @@ const CommentsWidget: React.FC<CommentsWidgetProps> = ({
 
   const closeComments = () => {
     setIsOpen(false);
-    // Reset all comment-related state
     setNewComment("");
     setReplyingTo(null);
     setReplyContent("");

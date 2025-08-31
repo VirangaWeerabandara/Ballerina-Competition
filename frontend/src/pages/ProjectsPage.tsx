@@ -75,6 +75,7 @@ const ProjectsPage = () => {
 
   // Comments state
   const [openCommentsFor, setOpenCommentsFor] = useState<string | null>(null);
+  const [isClosingComments, setIsClosingComments] = useState(false);
 
   // Monitor delete state changes for debugging
   useEffect(() => {
@@ -832,13 +833,19 @@ const ProjectsPage = () => {
           </div>
 
           {/* Comments Widget */}
-          {openCommentsFor && (
+          {(openCommentsFor || isClosingComments) && (
             <CommentsWidget
-              projectId={openCommentsFor}
+              projectId={openCommentsFor || ""}
               isOwner={true}
               currentUser={user?.email || "Anonymous"}
-              defaultOpen={true}
-              onClose={() => setOpenCommentsFor(null)}
+              defaultOpen={openCommentsFor !== null}
+              onClose={() => {
+                setIsClosingComments(true);
+                setTimeout(() => {
+                  setOpenCommentsFor(null);
+                  setIsClosingComments(false);
+                }, 200);
+              }}
             />
           )}
         </div>
