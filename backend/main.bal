@@ -3,7 +3,7 @@ import ballerina/log;
 import ballerina/sql;
 import ballerinax/postgresql;
 import ballerinax/postgresql.driver as _;
-
+import backend.agent as chatbot_agent;
 // Database configuration
 type DatabaseConfig record {|
     string host;
@@ -375,6 +375,22 @@ service /api/projects on httpListener {
         }
 
         check resultStream.close();
+    }
+
+ // Resource to handle chatbot interactions
+    resource function post chatbot(@http:Payload ChatRequest request) returns ChatResponse|error {
+        log:printInfo("Received chat request: " + request.message);
+
+        // Call the getChatbotResponse function from the agent module
+        string|error chatbotReply = chatbot_agent:getChatbotResponse(request.message);
+
+        if chatbotReply is string {
+            log:printInfo("Sending chatbot reply: " + chatbotReply);
+            return {reply: chatbotReply};
+        } else {
+            log:printError("Error getting chatbot reply: " + chatbotReply.message());
+            return error("Failed to get chatbot reply: " + chatbotReply.message());
+        }
     }
 
     
