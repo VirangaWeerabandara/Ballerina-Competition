@@ -22,6 +22,9 @@ const ProjectEditorPage = () => {
     return new URLSearchParams(location.search).get(param);
   }
 
+  // Check if this is a view-only mode (for community projects)
+  const isViewOnly = getQueryParam("viewOnly") === "true";
+
   const [project, setProject] = useState<ProjectData>({
     id: projectId || "new",
     name: "Untitled API Project",
@@ -183,6 +186,7 @@ const ProjectEditorPage = () => {
               onBack={handleBack}
               onSave={handleSave}
               projectId={project.id}
+              viewOnly={isViewOnly}
             />
           </div>
 

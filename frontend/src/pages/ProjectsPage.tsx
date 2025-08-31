@@ -51,6 +51,7 @@ interface Project {
   date: string;
   endpoints: number;
   type?: "rest-api" | "websocket" | "graphql";
+  owner?: string; // Add owner field for community projects
 }
 
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL as string;
@@ -194,6 +195,7 @@ const ProjectsPage = () => {
               endpoints: Array.isArray(p.blockLayout?.endpoints)
                 ? p.blockLayout.endpoints.length
                 : 0,
+              owner: p.email, // Store the owner email
             }))
           );
         } else {
@@ -271,6 +273,19 @@ const ProjectsPage = () => {
   const handleExampleClick = (example: Project) => {
     // Pass example=true and exampleId for the editor to load the example
     navigate(`/projects/editor/${example.id}?example=true`);
+  };
+
+  // Handle clicking a community project - allow viewing for everyone, editing only for owners
+  const handleCommunityProjectClick = (project: Project) => {
+    if (!user?.email) {
+      setError("You must be signed in to view projects.");
+      setTimeout(() => setError(null), 3000);
+      return;
+    }
+
+    // Allow all users to view the project, but pass ownership info
+    const isOwner = project.owner === user.email;
+    navigate(`/projects/editor/${project.id}?viewOnly=${!isOwner}`);
   };
 
   const handleProjectSubmit = async (data: {
@@ -538,69 +553,73 @@ const ProjectsPage = () => {
                   ) : (
                     <>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {filteredCommunityProjects.map((project) => (
-                          <Card
-                            key={project.id}
-                            className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group"
-                            onClick={() => {
-                              // Don't navigate if we're in the middle of a delete operation
-                              if (
-                                deleteDialogOpen &&
-                                pendingDeleteId === project.id
-                              ) {
-                                return;
+                        {filteredCommunityProjects.map((project) => {
+                          const isOwner = project.owner === user?.email;
+                          return (
+                            <Card
+                              key={project.id}
+                              className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-primary/50 group border-2 border-border hover:border-primary/50"
+                              onClick={() =>
+                                handleCommunityProjectClick(project)
                               }
-                              handleProjectClick(project.id);
-                            }}
-                          >
-                            <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between">
-                                <div className="flex-1">
-                                  <CardTitle className="text-lg group-hover:text-primary transition-colors">
-                                    {project.title}
-                                  </CardTitle>
-                                  <Badge variant="secondary" className="mt-2">
-                                    {project.category}
-                                  </Badge>
+                            >
+                              <CardHeader className="pb-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="flex-1">
+                                    <CardTitle className="text-lg group-hover:text-primary transition-colors">
+                                      {project.title}
+                                    </CardTitle>
+                                    <Badge variant="secondary" className="mt-2">
+                                      {project.category}
+                                    </Badge>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    {isOwner && (
+                                      <Badge
+                                        variant="outline"
+                                        className="text-xs text-primary border-primary/30"
+                                      >
+                                        Owner
+                                      </Badge>
+                                    )}
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
+                                      aria-label="View comments"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.nativeEvent.stopImmediatePropagation();
+                                        // Toggle comments widget for this project
+                                        setOpenCommentsFor(
+                                          openCommentsFor === project.id
+                                            ? null
+                                            : project.id
+                                        );
+                                      }}
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                    </Button>
+                                    <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                                  </div>
                                 </div>
-                                <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
-                                    aria-label="View comments"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.nativeEvent.stopImmediatePropagation();
-                                      // Toggle comments widget for this project
-                                      setOpenCommentsFor(
-                                        openCommentsFor === project.id
-                                          ? null
-                                          : project.id
-                                      );
-                                    }}
-                                  >
-                                    <MessageSquare className="h-4 w-4" />
-                                  </Button>
-                                  <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
+                              </CardHeader>
+                              <CardContent>
+                                <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
+                                  {project.description}
+                                </p>
+                                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                  <div className="flex items-center space-x-1">
+                                    <Calendar className="h-3 w-3" />
+                                    <span>{project.date}</span>
+                                  </div>
+                                  <span>{project.endpoints} endpoints</span>
                                 </div>
-                              </div>
-                            </CardHeader>
-                            <CardContent>
-                              <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
-                                {project.description}
-                              </p>
-                              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                                <div className="flex items-center space-x-1">
-                                  <Calendar className="h-3 w-3" />
-                                  <span>{project.date}</span>
-                                </div>
-                                <span>{project.endpoints} endpoints</span>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
+                              </CardContent>
+                            </Card>
+                          );
+                        })}
                       </div>
 
                       {filteredCommunityProjects.length === 0 && (

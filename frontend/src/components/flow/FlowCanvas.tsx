@@ -33,6 +33,7 @@ interface FlowCanvasProps {
   setEdges: (edges: Edge[] | ((prev: Edge[]) => Edge[])) => void;
   onSimulate: () => void;
   isSimulating: boolean;
+  viewOnly?: boolean; // Add viewOnly prop to disable editing
 }
 
 const FlowCanvas: React.FC<FlowCanvasProps> = ({
@@ -44,10 +45,15 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
   setEdges,
   onSimulate,
   isSimulating,
+  viewOnly = false,
 }) => {
   const onConnect: OnConnect = useCallback(
-    (params) => setEdges((eds) => addEdge(params, eds)),
-    [setEdges]
+    (params) => {
+      // Don't allow creating connections in view mode
+      if (viewOnly) return;
+      setEdges((eds) => addEdge(params, eds));
+    },
+    [setEdges, viewOnly]
   );
 
   const onDragOver = useCallback((event: React.DragEvent) => {
@@ -58,6 +64,9 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
   const onDrop = useCallback(
     (event: React.DragEvent) => {
       event.preventDefault();
+
+      // Don't allow dropping new nodes in view mode
+      if (viewOnly) return;
 
       // Get the dragged component data
       const reactFlowBounds = (event.target as HTMLElement)
@@ -96,7 +105,7 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
 
       setNodes((nds) => nds.concat(newNode));
     },
-    [setNodes]
+    [setNodes, viewOnly]
   );
 
   const handleDeleteNode = useCallback(
@@ -114,14 +123,17 @@ const FlowCanvas: React.FC<FlowCanvasProps> = ({
       <ReactFlow
         nodes={nodes}
         edges={edges}
-        onNodesChange={onNodesChange}
-        onEdgesChange={onEdgesChange}
+        onNodesChange={viewOnly ? undefined : onNodesChange}
+        onEdgesChange={viewOnly ? undefined : onEdgesChange}
         onConnect={onConnect}
         onDrop={onDrop}
         onDragOver={onDragOver}
         nodeTypes={nodeTypes}
         fitView
         className="bg-gray-200"
+        nodesDraggable={!viewOnly}
+        nodesConnectable={!viewOnly}
+        elementsSelectable={!viewOnly}
       >
         <Controls />
         <MiniMap />
