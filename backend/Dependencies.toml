@@ -9,6 +9,30 @@ distribution-version = "2201.12.7"
 
 [[package]]
 org = "ballerina"
+name = "ai"
+version = "1.5.0"
+dependencies = [
+	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "data.jsondata"},
+	{org = "ballerina", name = "data.xmldata"},
+	{org = "ballerina", name = "file"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "lang.regexp"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "math.vector"},
+	{org = "ballerina", name = "mcp"},
+	{org = "ballerina", name = "mime"},
+	{org = "ballerina", name = "time"},
+	{org = "ballerina", name = "url"},
+	{org = "ballerina", name = "uuid"},
+	{org = "ballerina", name = "yaml"}
+]
+
+[[package]]
+org = "ballerina"
 name = "auth"
 version = "2.14.0"
 dependencies = [
@@ -51,6 +75,15 @@ dependencies = [
 org = "ballerina"
 name = "data.jsondata"
 version = "1.1.1"
+dependencies = [
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.object"}
+]
+
+[[package]]
+org = "ballerina"
+name = "data.xmldata"
+version = "1.5.0"
 dependencies = [
 	{org = "ballerina", name = "jballerina.java"},
 	{org = "ballerina", name = "lang.object"}
@@ -219,6 +252,21 @@ modules = [
 
 [[package]]
 org = "ballerina"
+name = "math.vector"
+version = "1.2.0"
+
+[[package]]
+org = "ballerina"
+name = "mcp"
+version = "0.9.1"
+dependencies = [
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "uuid"}
+]
+
+[[package]]
+org = "ballerina"
 name = "mime"
 version = "2.12.0"
 dependencies = [
@@ -310,6 +358,18 @@ dependencies = [
 ]
 
 [[package]]
+org = "ballerina"
+name = "yaml"
+version = "0.8.0"
+dependencies = [
+	{org = "ballerina", name = "file"},
+	{org = "ballerina", name = "io"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "lang.regexp"},
+	{org = "ballerina", name = "log"}
+]
+
+[[package]]
 org = "ballerinai"
 name = "observe"
 version = "0.0.0"
@@ -323,12 +383,55 @@ modules = [
 
 [[package]]
 org = "ballerinax"
+name = "ai.openai"
+version = "1.2.2"
+dependencies = [
+	{org = "ballerina", name = "ai"},
+	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerina", name = "lang.array"},
+	{org = "ballerina", name = "lang.regexp"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerinax", name = "openai.chat"},
+	{org = "ballerinax", name = "openai.embeddings"}
+]
+modules = [
+	{org = "ballerinax", packageName = "ai.openai", moduleName = "ai.openai"}
+]
+
+[[package]]
+org = "ballerinax"
 name = "cdc"
 version = "1.0.3"
 dependencies = [
 	{org = "ballerina", name = "crypto"},
 	{org = "ballerina", name = "data.jsondata"},
 	{org = "ballerina", name = "jballerina.java"},
+	{org = "ballerinai", name = "observe"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "openai.chat"
+version = "4.0.0"
+dependencies = [
+	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "log"},
+	{org = "ballerina", name = "os"},
+	{org = "ballerina", name = "url"},
+	{org = "ballerinai", name = "observe"}
+]
+
+[[package]]
+org = "ballerinax"
+name = "openai.embeddings"
+version = "1.0.5"
+dependencies = [
+	{org = "ballerina", name = "constraint"},
+	{org = "ballerina", name = "http"},
+	{org = "ballerina", name = "url"},
 	{org = "ballerinai", name = "observe"}
 ]
 
@@ -365,10 +468,12 @@ dependencies = [
 	{org = "ballerina", name = "log"},
 	{org = "ballerina", name = "sql"},
 	{org = "ballerinai", name = "observe"},
+	{org = "ballerinax", name = "ai.openai"},
 	{org = "ballerinax", name = "postgresql"},
 	{org = "ballerinax", name = "postgresql.driver"}
 ]
 modules = [
-	{org = "oneblok", packageName = "backend", moduleName = "backend"}
+	{org = "oneblok", packageName = "backend", moduleName = "backend"},
+	{org = "oneblok", packageName = "backend", moduleName = "backend.agent"}
 ]
 

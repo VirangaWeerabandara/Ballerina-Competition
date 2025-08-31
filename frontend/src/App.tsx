@@ -8,6 +8,7 @@ import ProjectsPage from "./pages/ProjectsPage";
 import NotFound from "./pages/NotFound";
 import ProjectEditorPage from "./pages/ProjectEditorPage";
 import AuthHandler from "./components/auth/AuthHandler";
+import { ChatbotWidget } from "./components/chatbot";
 
 const queryClient = new QueryClient();
 
@@ -28,6 +29,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatbotWidget />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

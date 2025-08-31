@@ -3,7 +3,7 @@ import ballerina/log;
 import ballerina/sql;
 import ballerinax/postgresql;
 import ballerinax/postgresql.driver as _;
-import backend.agent as chatbot_agent;
+import backend.agent as agent;
 // Database configuration
 type DatabaseConfig record {|
     string host;
@@ -377,22 +377,40 @@ service /api/projects on httpListener {
         check resultStream.close();
     }
 
- // Resource to handle chatbot interactions
-    resource function post chatbot(@http:Payload ChatRequest request) returns ChatResponse|error {
-        log:printInfo("Received chat request: " + request.message);
+    resource function post chat(http:Caller caller, http:Request req) returns error? {
+        // Get the message from request body
+        var messageResult = req.getTextPayload();
+        if messageResult is error {
+            check caller->respond({"error": "Failed to read message from request body"});
+            return;
+        }
+        
+        string message = messageResult;
+        if message == "" {
+            check caller->respond({"error": "Message cannot be empty"});
+            return;
+        }
 
-        // Call the getChatbotResponse function from the agent module
-        string|error chatbotReply = chatbot_agent:getChatbotResponse(request.message);
+        log:printInfo("Received chat message: " + message);
+        
+        // Get response from AI chatbot
+        string|error response = agent:getChatbotResponse(message);
 
-        if chatbotReply is string {
-            log:printInfo("Sending chatbot reply: " + chatbotReply);
-            return {reply: chatbotReply};
+        if (response is string) {
+            log:printInfo("Chatbot response generated successfully");
+            check caller->respond({
+                "message": "Chat response generated successfully",
+                "response": response,
+                "userMessage": message
+            });
         } else {
-            log:printError("Error getting chatbot reply: " + chatbotReply.message());
-            return error("Failed to get chatbot reply: " + chatbotReply.message());
+            log:printError("Error getting chatbot response: " + response.toString());
+            check caller->respond({
+                "error": "Failed to get response from chatbot",
+                "details": response.toString()
+            });
         }
     }
-
     
 }
 
