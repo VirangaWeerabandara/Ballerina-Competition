@@ -1,3 +1,6 @@
+[backend.agent]
+chatGPTApiKey = "your_chatgpt_api_key"
+
 [databaseConfig]
 host = "localhost"
 port = "<<PostgreSQL_DB_PORT>>"

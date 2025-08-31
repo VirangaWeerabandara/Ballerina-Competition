@@ -1,44 +1,72 @@
-# Project Overview
+# OneBlock - Visual API Builder & Simulation Platform
 
-This project is a full-stack API builder and simulation platform. It allows users to visually design, simulate, and manage API-based projects (such as REST, GraphQL, and WebSocket services) through an interactive web interface.
+## Project Overview
+
+OneBlock is a comprehensive full-stack API builder and simulation platform that allows users to visually design, simulate, and manage API-based projects through an interactive web interface. The platform supports REST APIs, GraphQL APIs, and WebSocket services.
 
 ## What does this project do?
 
-- **Visual API Builder:** Users can drag and drop components to design API flows, endpoints, and logic visually in the frontend.
-- **Simulation:** The platform provides a simulation panel to step through and visualize how API requests would flow through the designed system.
-
-- **Authentication:** Uses Asgardeo authentication with Google sign-in for secure user access and project sharing.
+- **Visual API Builder:** Users can drag and drop components to design API flows, endpoints, and logic visually in the frontend
+- **Simulation Engine:** The platform provides a simulation panel to step through and visualize how API requests would flow through the designed system
+- **Project Management:** Save, load, and share projects with the community
+- **Real-time Collaboration:** Multiple users can work on shared projects simultaneously
+- **AI-Powered Assistance:** Integrated chatbot for debugging help and best practices
+- **Authentication:** Uses Asgardeo authentication with Google sign-in for secure user access
 
 ## How does it work?
 
-1. **Frontend (React + Vite):**
+### Frontend (React + Vite)
 
-   - Provides a modern, interactive UI for building and simulating APIs.
-   - Communicates with the backend via HTTP API calls.
-   - Allows users to save, load, and share projects with community.
+- Provides a modern, interactive UI for building and simulating APIs
+- Communicates with the backend via HTTP API calls
+- Features a drag-and-drop flow builder with real-time collaboration
+- Includes project simulation and visualization tools
 
-2. **Backend (Ballerina):**
+### Backend (Ballerina)
 
-   - Exposes RESTful endpoints for project CRUD operations and simulation data.
-   - Handles business logic and persists project data in PostgreSQL.
-   - Manages user/project access and sharing.
+- Exposes RESTful endpoints for project CRUD operations and simulation data
+- Handles business logic and persists project data in PostgreSQL
+- Manages user/project access, sharing, and commenting system
+- Integrates with OpenAI GPT for AI-powered assistance
 
-3. **Database (PostgreSQL):**
-   - Stores all project data, user info, and API block layouts.
+### Database (PostgreSQL)
 
-## Structure
+- Stores all project data, user info, and API block layouts
+- Uses JSONB for efficient storage of complex flow configurations
+- Supports real-time data synchronization
 
-- `backend/` — Ballerina backend service (API, database, business logic)
-- `frontend/` — React-based frontend (user interface)
+## Key Features
 
-## Setup Instructions
+- **Multi-API Support:** REST, GraphQL, and WebSocket services
+- **Visual Flow Design:** Intuitive drag-and-drop interface
+- **Real-time Simulation:** Test and visualize API flows before implementation
+- **Community Sharing:** Public projects accessible to all users
+- **Comment System:** Threaded discussions and collaboration
+- **AI Integration:** Smart debugging assistance and optimization tips
+- **Responsive Design:** Works seamlessly across desktop and mobile devices
+
+## Project Structure
+
+```
+├── backend/          # Ballerina backend service (API, database, business logic)
+├── frontend/         # React-based frontend (user interface)
+└── README.md         # This file - project overview
+```
+
+## Technology Stack
+
+- **Frontend:** React 18, TypeScript, Vite, Tailwind CSS
+- **Backend:** Ballerina 2201.12.7, PostgreSQL
+- **AI:** OpenAI GPT integration
+- **Authentication:** Asgardeo with Google OAuth
+- **Real-time:** WebSocket support for live collaboration
+
+## Getting Started
 
 Each part of the project has its own setup guide:
 
-- **Backend:** See [`backend/Readme.md`](./backend/Readme.md)
-- **Frontend:** See [`frontend/README.md`](./frontend/README.md)
-
-Please follow the instructions in each folder to get the backend and frontend running.
+- **Backend Setup:** See [`backend/Readme.md`](./backend/Readme.md) for backend installation and configuration
+- **Frontend Setup:** See [`frontend/README.md`](./frontend/README.md) for frontend installation and running
 
 ## Issues & Contact
 

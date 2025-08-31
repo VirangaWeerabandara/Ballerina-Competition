@@ -15,10 +15,12 @@ import {
   Download,
   Play,
   LogOut,
+  MessageSquare,
 } from "lucide-react";
 import FlowPalette from "./FlowPalette";
 import FlowCanvas from "./FlowCanvas";
 import SimulationPanel from "../project/SimulationPanel";
+import { CommentsWidget } from "@/components/comments";
 import { useAsgardeo } from "@asgardeo/react";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -31,6 +33,9 @@ interface FlowBuilderProps {
   initialEdges?: Edge[];
   onBack?: () => void;
   onSave?: (data: any) => void;
+  projectId?: string;
+  viewOnly?: boolean; // Add viewOnly prop to disable editing for non-owners
+  isShared?: boolean; // Add isShared prop to control comment visibility
 }
 
 import { useEffect } from "react";
@@ -41,6 +46,9 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   initialEdges = [],
   onBack,
   onSave,
+  projectId,
+  viewOnly = false,
+  isShared = true, // Default to true for backward compatibility
 }) => {
   // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -61,6 +69,10 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   const [showComponentPalette, setShowComponentPalette] = useState(true);
   const [showSimulationPanel, setShowSimulationPanel] = useState(true);
   const [isSimulating, setIsSimulating] = useState(false);
+
+  // Comments state
+  const [openComments, setOpenComments] = useState(false);
+  const [showComments, setShowComments] = useState(false); // Controls animation state
   const { user, signIn, signOut, isSignedIn, isLoading } = useAsgardeo();
 
   // Simulation state - simplified for now
@@ -72,7 +84,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   });
 
   // Public/Private toggle state (reversed: checked = Private, unchecked = Public)
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(!isShared);
 
   const handleSimulation = useCallback(() => {
     setIsSimulating(!isSimulating);
@@ -81,12 +93,18 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
 
   // Make project name and isShared stateful and editable
   const [currentName, setCurrentName] = useState(projectName);
-  const [currentIsPrivate, setCurrentIsPrivate] = useState(isPrivate);
+  const [currentIsPrivate, setCurrentIsPrivate] = useState(!isShared);
 
   // Sync currentName with projectName prop when it changes
   useEffect(() => {
     setCurrentName(projectName);
   }, [projectName]);
+
+  // Sync privacy state when isShared prop changes
+  useEffect(() => {
+    setIsPrivate(!isShared);
+    setCurrentIsPrivate(!isShared);
+  }, [isShared]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -115,10 +133,27 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   }, 1500);
 
   useEffect(() => {
-    if (nodes.length || edges.length) {
+    // Don't auto-save in view mode
+    if (viewOnly) return;
+
+    // Auto-save when there are nodes/edges, title changes, or privacy changes
+    if (
+      nodes.length ||
+      edges.length ||
+      currentName !== projectName ||
+      currentIsPrivate !== !isShared
+    ) {
       debouncedSave();
     }
-  }, [nodes, edges, currentName, currentIsPrivate]);
+  }, [
+    nodes,
+    edges,
+    currentName,
+    currentIsPrivate,
+    viewOnly,
+    projectName,
+    isShared,
+  ]);
 
   return (
     <ReactFlowProvider>
@@ -148,7 +183,10 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                   type="text"
                   value={currentName}
                   onChange={(e) => setCurrentName(e.target.value)}
-                  className="text-lg font-semibold bg-transparent border border-gray/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 px-2 mr-2 w-auto min-w-[80px] max-w-[300px] truncate transition-shadow shadow-sm"
+                  disabled={viewOnly}
+                  className={`text-lg font-semibold bg-transparent border border-gray/20 rounded-md focus:outline-none focus:ring-2 focus:ring-primary/40 px-2 mr-2 w-auto min-w-[80px] max-w-[300px] truncate transition-shadow shadow-sm ${
+                    viewOnly ? "opacity-60 cursor-not-allowed" : ""
+                  }`}
                   style={{ minWidth: 80, maxWidth: 300 }}
                   spellCheck={false}
                 />
@@ -168,35 +206,75 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                     ? "WebSocket"
                     : "REST API"}
                 </Badge>
+                {viewOnly && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    View Only
+                  </Badge>
+                )}
+
+                {/* Comment Icon - Only show for shared projects */}
+                {isShared && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10 ml-2"
+                    aria-label="View comments"
+                    onClick={() => {
+                      if (openComments) {
+                        // Close comments
+                        setShowComments(false);
+                        setTimeout(() => {
+                          setOpenComments(false);
+                        }, 300); // Wait for animation to complete
+                      } else {
+                        // Open comments
+                        setOpenComments(true);
+                        setShowComments(true);
+                      }
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex items-center space-x-4">
-            {/* Public/Private Toggle (reversed) */}
-            <div className="flex items-center mr-2">
-              <Switch
-                id="private-toggle"
-                checked={currentIsPrivate}
-                onCheckedChange={setCurrentIsPrivate}
-                className="mr-2"
-              />
-              <label
-                htmlFor="private-toggle"
-                className="text-sm select-none cursor-pointer"
+            {/* Public/Private Toggle (reversed) - hidden in view mode */}
+            {!viewOnly && (
+              <div className="flex items-center mr-2">
+                <Switch
+                  id="private-toggle"
+                  checked={currentIsPrivate}
+                  onCheckedChange={(checked) => {
+                    setCurrentIsPrivate(checked);
+                    // Trigger auto-save when privacy changes
+                    if (!viewOnly) {
+                      debouncedSave();
+                    }
+                  }}
+                  className="mr-2"
+                />
+                <label
+                  htmlFor="private-toggle"
+                  className="text-sm select-none cursor-pointer"
+                >
+                  Private
+                </label>
+              </div>
+            )}
+            {!viewOnly && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleSave}
+                className="flex items-center px-2 py-1 bg-transparent hover:bg-primary/10 border-none shadow-none"
               >
-                Private
-              </label>
-            </div>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSave}
-              className="flex items-center px-2 py-1 bg-transparent hover:bg-primary/10 border-none shadow-none"
-            >
-              <Save className="w-4 h-4 mr-1" />
-              <span className="font-medium">Save</span>
-            </Button>
+                <Save className="w-4 h-4 mr-1" />
+                <span className="font-medium">Save</span>
+              </Button>
+            )}
 
             <Button
               onClick={() => signOut()}
@@ -209,27 +287,31 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
 
         {/* Main Content */}
         <div className="flex-1 flex overflow-hidden bg-white/30 backdrop-blur-2xl">
-          {/* Component Palette */}
-          {showComponentPalette ? (
-            <div className="relative">
-              <FlowPalette projectType={projectType} />
-              <button
-                className="absolute top-2 right-0 z-30 bg-white/60 rounded-l px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
-                style={{ transform: "translateX(100%)" }}
-                onClick={() => setShowComponentPalette(false)}
-                aria-label="Hide component palette"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button
-              className="w-6 h-full flex items-center justify-center bg-white/60 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
-              onClick={() => setShowComponentPalette(true)}
-              aria-label="Show component palette"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </button>
+          {/* Component Palette - hidden in view mode */}
+          {!viewOnly && (
+            <>
+              {showComponentPalette ? (
+                <div className="relative">
+                  <FlowPalette projectType={projectType} />
+                  <button
+                    className="absolute top-2 right-0 z-30 bg-white/60 rounded-l px-1 py-2 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
+                    style={{ transform: "translateX(100%)" }}
+                    onClick={() => setShowComponentPalette(false)}
+                    aria-label="Hide component palette"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <button
+                  className="w-6 h-full flex items-center justify-center bg-white/60 hover:bg-muted/60 backdrop-blur-2xl transition-colors"
+                  onClick={() => setShowComponentPalette(true)}
+                  aria-label="Show component palette"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              )}
+            </>
           )}
 
           {/* Canvas */}
@@ -243,6 +325,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
               setEdges={setEdges}
               onSimulate={handleSimulation}
               isSimulating={isSimulating}
+              viewOnly={viewOnly}
             />
           </div>
 
@@ -295,6 +378,22 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Comments Widget */}
+      {openComments && (
+        <CommentsWidget
+          projectId={projectId || ""}
+          isOwner={!viewOnly}
+          currentUser={user?.email || "Anonymous"}
+          defaultOpen={showComments}
+          onClose={() => {
+            setShowComments(false);
+            setTimeout(() => {
+              setOpenComments(false);
+            }, 300);
+          }}
+        />
+      )}
     </ReactFlowProvider>
   );
 };
