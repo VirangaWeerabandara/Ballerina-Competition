@@ -53,6 +53,7 @@ interface Project {
   endpoints: number;
   type?: "rest-api" | "websocket" | "graphql";
   owner?: string; // Add owner field for community projects
+  isShared?: boolean; // Add isShared field for private/public projects
 }
 
 const BACKEND_BASE_URL = import.meta.env.VITE_BACKEND_BASE_URL as string;
@@ -167,6 +168,7 @@ const ProjectsPage = () => {
               endpoints: Array.isArray(p.blockLayout?.endpoints)
                 ? p.blockLayout.endpoints.length
                 : 0,
+              isShared: p.isShared || false, // Add isShared property
             }))
           );
         } else {
@@ -196,6 +198,7 @@ const ProjectsPage = () => {
                 ? p.blockLayout.endpoints.length
                 : 0,
               owner: p.email, // Store the owner email
+              isShared: p.isShared || true, // Community projects are always shared
             }))
           );
         } else {
@@ -584,31 +587,34 @@ const ProjectsPage = () => {
                                         Owner
                                       </Badge>
                                     )}
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
-                                      aria-label="View comments"
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        e.stopPropagation();
-                                        e.nativeEvent.stopImmediatePropagation();
-                                        // Toggle comments widget for this project
-                                        if (openCommentsFor === project.id) {
-                                          // Close comments
-                                          setShowComments(false);
-                                          setTimeout(() => {
-                                            setOpenCommentsFor(null);
-                                          }, 300); // Wait for animation to complete
-                                        } else {
-                                          // Open comments for this project
-                                          setOpenCommentsFor(project.id);
-                                          setShowComments(true);
-                                        }
-                                      }}
-                                    >
-                                      <MessageSquare className="h-4 w-4" />
-                                    </Button>
+                                    {/* Only show comment icon for shared projects */}
+                                    {project.isShared && (
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
+                                        aria-label="View comments"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          e.nativeEvent.stopImmediatePropagation();
+                                          // Toggle comments widget for this project
+                                          if (openCommentsFor === project.id) {
+                                            // Close comments
+                                            setShowComments(false);
+                                            setTimeout(() => {
+                                              setOpenCommentsFor(null);
+                                            }, 300); // Wait for animation to complete
+                                          } else {
+                                            // Open comments for this project
+                                            setOpenCommentsFor(project.id);
+                                            setShowComments(true);
+                                          }
+                                        }}
+                                      >
+                                        <MessageSquare className="h-4 w-4" />
+                                      </Button>
+                                    )}
                                     <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                                   </div>
                                 </div>
@@ -725,31 +731,34 @@ const ProjectsPage = () => {
                                   </Badge>
                                 </div>
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
-                                    aria-label="View comments"
-                                    onClick={(e) => {
-                                      e.preventDefault();
-                                      e.stopPropagation();
-                                      e.nativeEvent.stopImmediatePropagation();
-                                      // Toggle comments widget for this project
-                                      if (openCommentsFor === project.id) {
-                                        // Close comments
-                                        setShowComments(false);
-                                        setTimeout(() => {
-                                          setOpenCommentsFor(null);
-                                        }, 300); // Wait for animation to complete
-                                      } else {
-                                        // Open comments for this project
-                                        setOpenCommentsFor(project.id);
-                                        setShowComments(true);
-                                      }
-                                    }}
-                                  >
-                                    <MessageSquare className="h-4 w-4" />
-                                  </Button>
+                                  {/* Only show comment icon for shared projects */}
+                                  {project.isShared && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
+                                      aria-label="View comments"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        e.nativeEvent.stopImmediatePropagation();
+                                        // Toggle comments widget for this project
+                                        if (openCommentsFor === project.id) {
+                                          // Close comments
+                                          setShowComments(false);
+                                          setTimeout(() => {
+                                            setOpenCommentsFor(null);
+                                          }, 300); // Wait for animation to complete
+                                        } else {
+                                          // Open comments for this project
+                                          setOpenCommentsFor(project.id);
+                                          setShowComments(true);
+                                        }
+                                      }}
+                                    >
+                                      <MessageSquare className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                   <AlertDialog
                                     open={
                                       deleteDialogOpen &&

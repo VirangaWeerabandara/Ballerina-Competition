@@ -35,6 +35,7 @@ interface FlowBuilderProps {
   onSave?: (data: any) => void;
   projectId?: string;
   viewOnly?: boolean; // Add viewOnly prop to disable editing for non-owners
+  isShared?: boolean; // Add isShared prop to control comment visibility
 }
 
 import { useEffect } from "react";
@@ -47,6 +48,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   onSave,
   projectId,
   viewOnly = false,
+  isShared = true, // Default to true for backward compatibility
 }) => {
   // React Flow state
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
@@ -82,7 +84,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
   });
 
   // Public/Private toggle state (reversed: checked = Private, unchecked = Public)
-  const [isPrivate, setIsPrivate] = useState(false);
+  const [isPrivate, setIsPrivate] = useState(!isShared);
 
   const handleSimulation = useCallback(() => {
     setIsSimulating(!isSimulating);
@@ -91,12 +93,18 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
 
   // Make project name and isShared stateful and editable
   const [currentName, setCurrentName] = useState(projectName);
-  const [currentIsPrivate, setCurrentIsPrivate] = useState(isPrivate);
+  const [currentIsPrivate, setCurrentIsPrivate] = useState(!isShared);
 
   // Sync currentName with projectName prop when it changes
   useEffect(() => {
     setCurrentName(projectName);
   }, [projectName]);
+
+  // Sync privacy state when isShared prop changes
+  useEffect(() => {
+    setIsPrivate(!isShared);
+    setCurrentIsPrivate(!isShared);
+  }, [isShared]);
 
   const handleSave = useCallback(async () => {
     setSaving(true);
@@ -128,11 +136,24 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
     // Don't auto-save in view mode
     if (viewOnly) return;
 
-    // Auto-save when there are nodes/edges OR when the title changes
-    if (nodes.length || edges.length || currentName !== projectName) {
+    // Auto-save when there are nodes/edges, title changes, or privacy changes
+    if (
+      nodes.length ||
+      edges.length ||
+      currentName !== projectName ||
+      currentIsPrivate !== !isShared
+    ) {
       debouncedSave();
     }
-  }, [nodes, edges, currentName, currentIsPrivate, viewOnly, projectName]);
+  }, [
+    nodes,
+    edges,
+    currentName,
+    currentIsPrivate,
+    viewOnly,
+    projectName,
+    isShared,
+  ]);
 
   return (
     <ReactFlowProvider>
@@ -191,28 +212,30 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                   </Badge>
                 )}
 
-                {/* Comment Icon */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10 ml-2"
-                  aria-label="View comments"
-                  onClick={() => {
-                    if (openComments) {
-                      // Close comments
-                      setShowComments(false);
-                      setTimeout(() => {
-                        setOpenComments(false);
-                      }, 300); // Wait for animation to complete
-                    } else {
-                      // Open comments
-                      setOpenComments(true);
-                      setShowComments(true);
-                    }
-                  }}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
+                {/* Comment Icon - Only show for shared projects */}
+                {isShared && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10 ml-2"
+                    aria-label="View comments"
+                    onClick={() => {
+                      if (openComments) {
+                        // Close comments
+                        setShowComments(false);
+                        setTimeout(() => {
+                          setOpenComments(false);
+                        }, 300); // Wait for animation to complete
+                      } else {
+                        // Open comments
+                        setOpenComments(true);
+                        setShowComments(true);
+                      }
+                    }}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -224,7 +247,13 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                 <Switch
                   id="private-toggle"
                   checked={currentIsPrivate}
-                  onCheckedChange={setCurrentIsPrivate}
+                  onCheckedChange={(checked) => {
+                    setCurrentIsPrivate(checked);
+                    // Trigger auto-save when privacy changes
+                    if (!viewOnly) {
+                      debouncedSave();
+                    }
+                  }}
                   className="mr-2"
                 />
                 <label

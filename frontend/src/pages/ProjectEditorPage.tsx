@@ -78,6 +78,7 @@ const ProjectEditorPage = () => {
               template: p.blockLayout?.template || "",
               nodes: p.blockLayout?.nodes || [],
               edges: p.blockLayout?.edges || [],
+              isShared: p.isShared || false, // Add isShared property
             });
           }
         } catch (e) {
@@ -90,6 +91,7 @@ const ProjectEditorPage = () => {
             template: "basic-crud",
             nodes: [],
             edges: [],
+            isShared: true, // Default to shared for new projects
           });
         }
       };
@@ -187,6 +189,7 @@ const ProjectEditorPage = () => {
               onSave={handleSave}
               projectId={project.id}
               viewOnly={isViewOnly}
+              isShared={project.isShared}
             />
           </div>
 

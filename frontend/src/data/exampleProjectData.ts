@@ -10,6 +10,7 @@ export interface ProjectData {
   template: string;
   nodes?: Node[];
   edges?: Edge[];
+  isShared?: boolean; // Add isShared property for private/public projects
 }
 
 const exampleProjectData: Record<string, ProjectData> = {
@@ -18,6 +19,7 @@ const exampleProjectData: Record<string, ProjectData> = {
     name: "Chatbot API",
     type: "rest-api",
     template: "chatbot-template",
+    isShared: true, // Example projects are always shared
     nodes: [
       // 8 endpoint nodes
       {
