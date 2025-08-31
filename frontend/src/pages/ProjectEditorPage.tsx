@@ -8,7 +8,6 @@ import {
 } from "@asgardeo/react";
 import { Card, CardContent } from "@/components/ui/card";
 import FlowBuilder from "@/components/flow/FlowBuilder";
-import CommentSection from "@/components/comments/CommentSection";
 
 import exampleProjectData, { ProjectData } from "@/data/exampleProjectData";
 
@@ -185,17 +184,8 @@ const ProjectEditorPage = () => {
               onSave={handleSave}
             />
           </div>
-          
-          {/* Comment Section */}
-          <div className="w-80 border-l border-gray-200 bg-white">
-            <div className="h-full overflow-y-auto p-4">
-              <CommentSection
-                projectId={project.id}
-                isOwner={true} // Assuming the current user is the owner for now
-                currentUser={user?.email || "Anonymous"}
-              />
-            </div>
-          </div>
+
+          {/* Comments Widget will be rendered as a floating widget */}
         </div>
       </SignedIn>
     </>
