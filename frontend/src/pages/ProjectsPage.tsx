@@ -494,25 +494,6 @@ const ProjectsPage = () => {
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10"
-                                aria-label="View comments"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  e.nativeEvent.stopImmediatePropagation();
-                                  // Toggle comments widget for this project
-                                  setOpenCommentsFor(
-                                    openCommentsFor === example.id
-                                      ? null
-                                      : example.id
-                                  );
-                                }}
-                              >
-                                <MessageSquare className="h-4 w-4" />
-                              </Button>
                               <ExternalLink className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                           </div>

@@ -15,14 +15,12 @@ import {
   Download,
   Play,
   LogOut,
-  MessageSquare,
 } from "lucide-react";
 import FlowPalette from "./FlowPalette";
 import FlowCanvas from "./FlowCanvas";
 import SimulationPanel from "../project/SimulationPanel";
 import { useAsgardeo } from "@asgardeo/react";
 import { useDebouncedCallback } from "use-debounce";
-import { CommentsWidget } from "@/components/comments";
 
 import { Node, Edge } from "reactflow";
 
@@ -52,10 +50,6 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
 
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
-
-  // Comments state
-  const [openComments, setOpenComments] = useState(false);
-  const [isClosingComments, setIsClosingComments] = useState(false);
 
   // Reset nodes/edges when initialNodes/initialEdges change (e.g., when loading a new example)
   useEffect(() => {
@@ -176,17 +170,6 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                     ? "WebSocket"
                     : "REST API"}
                 </Badge>
-
-                {/* Comment Icon */}
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10 ml-2"
-                  aria-label="View comments"
-                  onClick={() => setOpenComments(!openComments)}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </div>
@@ -313,23 +296,6 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
             </span>
           </div>
         </div>
-
-        {/* Comments Widget */}
-        {(openComments || isClosingComments) && (
-          <CommentsWidget
-            projectId={projectId || ""}
-            isOwner={true}
-            currentUser={user?.email || "Anonymous"}
-            defaultOpen={openComments}
-            onClose={() => {
-              setIsClosingComments(true);
-              setTimeout(() => {
-                setOpenComments(false);
-                setIsClosingComments(false);
-              }, 200);
-            }}
-          />
-        )}
       </div>
     </ReactFlowProvider>
   );
