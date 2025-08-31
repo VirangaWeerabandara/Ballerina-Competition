@@ -11,3 +11,10 @@ observabilityIncluded = true
 groupId = "org.postgresql"
 artifactId = "postgresql"
 version = "42.6.1"
+
+[[dependency]]
+org = "ballerinax"
+name = "ai.openai"
+version = "1.2.2" 
+
+# Removed redundant ai dependency - ai.openai already includes it 

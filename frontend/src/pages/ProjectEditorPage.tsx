@@ -22,6 +22,9 @@ const ProjectEditorPage = () => {
     return new URLSearchParams(location.search).get(param);
   }
 
+  // Check if this is a view-only mode (for community projects)
+  const isViewOnly = getQueryParam("viewOnly") === "true";
+
   const [project, setProject] = useState<ProjectData>({
     id: projectId || "new",
     name: "Untitled API Project",
@@ -172,14 +175,23 @@ const ProjectEditorPage = () => {
       </SignedOut>
 
       <SignedIn>
-        <FlowBuilder
-          projectName={project.name}
-          projectType={project.type}
-          initialNodes={project.nodes}
-          initialEdges={project.edges}
-          onBack={handleBack}
-          onSave={handleSave}
-        />
+        <div className="flex h-screen">
+          {/* Flow Builder Section */}
+          <div className="flex-1">
+            <FlowBuilder
+              projectName={project.name}
+              projectType={project.type}
+              initialNodes={project.nodes}
+              initialEdges={project.edges}
+              onBack={handleBack}
+              onSave={handleSave}
+              projectId={project.id}
+              viewOnly={isViewOnly}
+            />
+          </div>
+
+          {/* Comments Widget will be rendered as a floating widget */}
+        </div>
       </SignedIn>
     </>
   );
