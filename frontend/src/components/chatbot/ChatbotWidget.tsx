@@ -12,8 +12,10 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChat } from "@/hooks/useChat";
+import { useAsgardeo } from "@asgardeo/react";
 
 const ChatbotWidget: React.FC = () => {
+  const { isSignedIn } = useAsgardeo();
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const { messages, isLoading, sendMessage, clearMessages } = useChat();
@@ -76,6 +78,11 @@ const ChatbotWidget: React.FC = () => {
   const handleClearMessages = () => {
     clearMessages();
   };
+
+  // Don't render the chatbot if user is not signed in
+  if (!isSignedIn) {
+    return null;
+  }
 
   return (
     <>

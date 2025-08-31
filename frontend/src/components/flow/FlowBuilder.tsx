@@ -70,7 +70,7 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
 
   // Comments state
   const [openComments, setOpenComments] = useState(false);
-  const [isClosingComments, setIsClosingComments] = useState(false);
+  const [showComments, setShowComments] = useState(false); // Controls animation state
   const { user, signIn, signOut, isSignedIn, isLoading } = useAsgardeo();
 
   // Simulation state - simplified for now
@@ -197,7 +197,19 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
                   size="icon"
                   className="h-6 w-6 p-0 text-primary hover:text-primary/80 hover:bg-primary/10 ml-2"
                   aria-label="View comments"
-                  onClick={() => setOpenComments(!openComments)}
+                  onClick={() => {
+                    if (openComments) {
+                      // Close comments
+                      setShowComments(false);
+                      setTimeout(() => {
+                        setOpenComments(false);
+                      }, 300); // Wait for animation to complete
+                    } else {
+                      // Open comments
+                      setOpenComments(true);
+                      setShowComments(true);
+                    }
+                  }}
                 >
                   <MessageSquare className="h-4 w-4" />
                 </Button>
@@ -339,18 +351,17 @@ const FlowBuilderContent: React.FC<FlowBuilderProps> = ({
       </div>
 
       {/* Comments Widget */}
-      {(openComments || isClosingComments) && (
+      {openComments && (
         <CommentsWidget
           projectId={projectId || ""}
           isOwner={!viewOnly}
           currentUser={user?.email || "Anonymous"}
-          defaultOpen={openComments}
+          defaultOpen={showComments}
           onClose={() => {
-            setIsClosingComments(true);
+            setShowComments(false);
             setTimeout(() => {
               setOpenComments(false);
-              setIsClosingComments(false);
-            }, 200);
+            }, 300);
           }}
         />
       )}

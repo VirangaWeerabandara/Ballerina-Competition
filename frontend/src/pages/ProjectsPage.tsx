@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Plus,
   Search,
@@ -63,7 +64,7 @@ const ProjectsPage = () => {
     "my"
   );
   const [projects, setProjects] = useState<Project[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const [error, setError] = useState<string | null>(null);
   const [communityProjects, setCommunityProjects] = useState<Project[]>([]);
 
@@ -77,6 +78,7 @@ const ProjectsPage = () => {
   // Comments state
   const [openCommentsFor, setOpenCommentsFor] = useState<string | null>(null);
   const [isClosingComments, setIsClosingComments] = useState(false);
+  const [showComments, setShowComments] = useState(false); // Add this for animation control
 
   // Monitor delete state changes for debugging
   useEffect(() => {
@@ -179,8 +181,6 @@ const ProjectsPage = () => {
     };
 
     const fetchCommunityProjects = async () => {
-      setLoading(true);
-      setError(null);
       try {
         const res = await fetch(`${BACKEND_BASE_URL}/projects/shared`);
         const data = await res.json();
@@ -202,15 +202,17 @@ const ProjectsPage = () => {
           setCommunityProjects([]);
         }
       } catch (err) {
-        setError("Failed to load community projects.");
+        console.warn("Failed to load community projects:", err);
         setCommunityProjects([]);
-      } finally {
-        setLoading(false);
       }
     };
 
+    // Load projects based on active tab
     if (activeTab === "my" && user?.email) {
-      fetchProjects();
+      // Load user projects and community projects in parallel for better performance
+      Promise.all([fetchProjects(), fetchCommunityProjects()]).catch((err) => {
+        console.error("Error loading projects:", err);
+      });
     } else if (activeTab === "community") {
       fetchCommunityProjects();
     }
@@ -592,11 +594,17 @@ const ProjectsPage = () => {
                                         e.stopPropagation();
                                         e.nativeEvent.stopImmediatePropagation();
                                         // Toggle comments widget for this project
-                                        setOpenCommentsFor(
-                                          openCommentsFor === project.id
-                                            ? null
-                                            : project.id
-                                        );
+                                        if (openCommentsFor === project.id) {
+                                          // Close comments
+                                          setShowComments(false);
+                                          setTimeout(() => {
+                                            setOpenCommentsFor(null);
+                                          }, 300); // Wait for animation to complete
+                                        } else {
+                                          // Open comments for this project
+                                          setOpenCommentsFor(project.id);
+                                          setShowComments(true);
+                                        }
                                       }}
                                     >
                                       <MessageSquare className="h-4 w-4" />
@@ -654,7 +662,35 @@ const ProjectsPage = () => {
 
                   {/* Loading/Error State */}
                   {loading ? (
-                    <div className="text-center py-12">Loading projects...</div>
+                    <div className="space-y-6">
+                      <div className="text-center py-8">
+                        <div className="flex flex-col items-center space-y-4">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                          <p className="text-muted-foreground">
+                            Loading your projects...
+                          </p>
+                          <p className="text-sm text-muted-foreground/70">
+                            This should only take a moment
+                          </p>
+                        </div>
+                      </div>
+                      {/* Skeleton loading state for better perceived performance */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {[1, 2, 3].map((i) => (
+                          <Card key={i} className="p-6">
+                            <div className="space-y-4">
+                              <Skeleton className="h-6 w-3/4" />
+                              <Skeleton className="h-4 w-1/2" />
+                              <Skeleton className="h-4 w-full" />
+                              <div className="flex justify-between items-center">
+                                <Skeleton className="h-6 w-20" />
+                                <Skeleton className="h-8 w-8 rounded-full" />
+                              </div>
+                            </div>
+                          </Card>
+                        ))}
+                      </div>
+                    </div>
                   ) : error ? (
                     <div className="text-center py-12 text-red-500">
                       {error}
@@ -699,11 +735,17 @@ const ProjectsPage = () => {
                                       e.stopPropagation();
                                       e.nativeEvent.stopImmediatePropagation();
                                       // Toggle comments widget for this project
-                                      setOpenCommentsFor(
-                                        openCommentsFor === project.id
-                                          ? null
-                                          : project.id
-                                      );
+                                      if (openCommentsFor === project.id) {
+                                        // Close comments
+                                        setShowComments(false);
+                                        setTimeout(() => {
+                                          setOpenCommentsFor(null);
+                                        }, 300); // Wait for animation to complete
+                                      } else {
+                                        // Open comments for this project
+                                        setOpenCommentsFor(project.id);
+                                        setShowComments(true);
+                                      }
                                     }}
                                   >
                                     <MessageSquare className="h-4 w-4" />
@@ -838,13 +880,12 @@ const ProjectsPage = () => {
               projectId={openCommentsFor || ""}
               isOwner={true}
               currentUser={user?.email || "Anonymous"}
-              defaultOpen={openCommentsFor !== null}
+              defaultOpen={showComments}
               onClose={() => {
-                setIsClosingComments(true);
+                setShowComments(false);
                 setTimeout(() => {
                   setOpenCommentsFor(null);
-                  setIsClosingComments(false);
-                }, 200);
+                }, 300);
               }}
             />
           )}

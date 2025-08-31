@@ -1,95 +1,77 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useAsgardeo } from "@asgardeo/react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export default function AuthHandler() {
   const navigate = useNavigate();
-  const location = useLocation();
   const { isSignedIn, getDecodedIdToken, isLoading } = useAsgardeo();
-  const [isProcessing, setIsProcessing] = useState(false);
 
+  // Single state for tracking authentication flow
+  const [authStatus, setAuthStatus] = useState<
+    "idle" | "processing" | "completed"
+  >("idle");
+
+  // Handle authentication flow
   useEffect(() => {
-    console.log("AuthHandler: State changed", {
-      isSignedIn,
-      isLoading,
-      isProcessing,
-      currentPath: location.pathname,
-    });
-
-    // Don't do anything while Asgardeo is still loading
-    if (isLoading) {
-      console.log("AuthHandler: Still loading, skipping...");
+    // Skip if still loading or already completed
+    if (isLoading || authStatus === "completed") {
       return;
     }
 
-    if (isSignedIn && !isProcessing) {
+    if (isSignedIn && authStatus === "idle") {
       console.log("AuthHandler: User signed in, processing...");
-      setIsProcessing(true);
-      // Register user in backend after login
-      getDecodedIdToken()
-        .then(async (idToken) => {
-          const token = idToken.raw;
-          console.log("AuthHandler: Got token, checking redirect...");
-          // Only redirect to projects page if user is on the home page
-          // Don't redirect if they're already on a project-related page
-          if (location.pathname === "/") {
-            console.log("AuthHandler: Redirecting from home to /projects");
-            navigate("/projects", { replace: true });
-          } else {
-            console.log(
-              "AuthHandler: No redirect needed, user is on:",
-              location.pathname
-            );
-          }
-        })
-        .catch((error) => {
-          console.error("AuthHandler: Error registering user:", error);
-          // Only redirect if on home page, even if registration fails
-          if (location.pathname === "/") {
-            console.log(
-              "AuthHandler: Redirecting from home to /projects (after error)"
-            );
-            navigate("/projects", { replace: true });
-          }
-        })
-        .finally(() => {
-          console.log("AuthHandler: Finished processing");
-          setIsProcessing(false);
-        });
-    } else if (!isSignedIn && !isLoading) {
-      console.log("AuthHandler: User not signed in, checking redirect...");
-      // Only redirect to home page if user is not on home page
-      // and not on a project-related page (let ProjectEditorPage handle its own auth)
-      if (
-        location.pathname !== "/" &&
-        !location.pathname.startsWith("/projects")
-      ) {
-        console.log(
-          "AuthHandler: Redirecting to home from:",
-          location.pathname
-        );
-        navigate("/", { replace: true });
-      } else {
-        console.log(
-          "AuthHandler: No redirect needed for unauthenticated user on:",
-          location.pathname
-        );
-      }
-    }
-  }, [isSignedIn, isLoading, navigate, location.pathname, isProcessing]);
+      setAuthStatus("processing");
 
-  // Show loading spinner while checking authentication
-  if (isLoading || (isSignedIn && isProcessing)) {
-    console.log("AuthHandler: Showing loading spinner");
-    return (
-      <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-          <p className="text-muted-foreground">Loading...</p>
-        </div>
-      </div>
-    );
-  }
+      // Handle authentication and preloading in parallel
+      Promise.all([
+        // Get token for preloading
+        getDecodedIdToken().catch((err) => {
+          console.warn("AuthHandler: Token fetch warning:", err);
+          return null;
+        }),
+        // Small delay to ensure smooth transition
+        new Promise((resolve) => setTimeout(resolve, 100)),
+      ]).then(() => {
+        setAuthStatus("completed");
+
+        // Preload projects data for better performance
+        const preloadProjects = async () => {
+          try {
+            const token = await getDecodedIdToken();
+            if (token?.raw) {
+              // Prefetch projects data
+              fetch(
+                `${
+                  import.meta.env.VITE_BACKEND_BASE_URL
+                }/projects/byEmail?email=${encodeURIComponent(
+                  token.email || ""
+                )}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token.raw}`,
+                  },
+                }
+              ).catch(() => {
+                // Silently fail preloading - it's just for performance
+              });
+            }
+          } catch (err) {
+            // Ignore preloading errors
+          }
+        };
+
+        // Start preloading in the background
+        preloadProjects();
+      });
+    }
+  }, [isSignedIn, isLoading, authStatus, getDecodedIdToken]);
+
+  // Reset auth status when authentication state changes
+  useEffect(() => {
+    if (isLoading) {
+      setAuthStatus("idle");
+    }
+  }, [isLoading]);
 
   return null;
 }

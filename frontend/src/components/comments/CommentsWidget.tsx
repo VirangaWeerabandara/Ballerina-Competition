@@ -44,7 +44,7 @@ const CommentsWidget: React.FC<CommentsWidgetProps> = ({
   defaultOpen = false,
   onClose,
 }) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
+  const [isOpen, setIsOpen] = useState(false); // Always start closed
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState("");
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
@@ -72,6 +72,19 @@ const CommentsWidget: React.FC<CommentsWidgetProps> = ({
       setTimeout(() => newCommentRef.current?.focus(), 100);
     }
   }, [isOpen]);
+
+  // Effect to handle opening comments with animation
+  useEffect(() => {
+    if (defaultOpen) {
+      // Small delay to ensure the component is mounted before animating
+      const timer = setTimeout(() => {
+        setIsOpen(true);
+      }, 50);
+      return () => clearTimeout(timer);
+    } else {
+      setIsOpen(false);
+    }
+  }, [defaultOpen]);
 
   // Fetch comments when component mounts or projectId changes
   useEffect(() => {
@@ -373,7 +386,12 @@ const CommentsWidget: React.FC<CommentsWidgetProps> = ({
         )}
       >
         {/* Backdrop for better visual separation */}
-        <div className="absolute inset-0 bg-gradient-to-l from-black/10 to-transparent pointer-events-none transition-opacity duration-300" />
+        <div
+          className={cn(
+            "absolute inset-0 bg-gradient-to-l from-black/10 to-transparent pointer-events-none transition-opacity duration-300",
+            isOpen ? "opacity-100" : "opacity-0"
+          )}
+        />
 
         {/* Main Comments Panel */}
         <div

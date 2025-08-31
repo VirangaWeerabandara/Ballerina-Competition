@@ -1,12 +1,63 @@
-# Comment System Documentation
+# Backend Setup & Running Instructions
 
-This document describes the comment system implementation including the database schema, API endpoints, and frontend integration.
+This document provides step-by-step instructions to set up and run the OneBlock backend service.
 
-## Database Schema
+## Prerequisites
 
-### Comment Table
+- **Ballerina**: 2201.12.7 or later
+- **PostgreSQL**: 12+ with JSONB support
+- **OpenAI API Key**: For chatbot functionality (optional but recommended)
+
+## Installation Steps
+
+### 1. Install Ballerina
+
+```bash
+# Download and install Ballerina from https://ballerina.io/downloads/
+# Verify installation
+bal --version
+```
+
+### 2. Configure Environment
+
+```bash
+# Copy example config
+cp Config.example.toml Config.toml
+
+# Edit Config.toml with your values:
+# - Add your OpenAI API key (for chatbot functionality)
+# - Configure database connection details
+```
+
+### 3. Database Setup
+
+#### Create Database and Tables
 
 ```sql
+-- Connect to PostgreSQL
+psql -U postgres
+
+-- Create database
+CREATE DATABASE oneblok_db;
+
+-- Connect to the database
+\c oneblok_db
+
+-- Create ProjectType enum
+CREATE TYPE ProjectType AS ENUM ('RESTApi', 'GraphQL', 'WebSocket');
+
+-- Create Project table
+CREATE TABLE Project (
+    projectId VARCHAR(255) PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    projectType ProjectType NOT NULL,
+    isShared BOOLEAN DEFAULT false,
+    blockLayout JSONB NOT NULL,
+    createdAt TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Create Comment table
 CREATE TABLE Comment (
     commentId VARCHAR(255) PRIMARY KEY,
     projectId VARCHAR(255) NOT NULL REFERENCES Project(projectId) ON DELETE CASCADE,
@@ -16,111 +67,114 @@ CREATE TABLE Comment (
     likesCount INTEGER DEFAULT 0,
     createdAt VARCHAR(255) NOT NULL
 );
-```
 
-### CommentLike Table
-
-```sql
+-- Create CommentLike table
 CREATE TABLE CommentLike (
     commentId VARCHAR(255) NOT NULL REFERENCES Comment(commentId) ON DELETE CASCADE,
     userEmail VARCHAR(255) NOT NULL,
     createdAt VARCHAR(255) NOT NULL,
     PRIMARY KEY (commentId, userEmail)
 );
+
+-- Create indexes for better performance
+CREATE INDEX idx_project_email ON Project(email);
+CREATE INDEX idx_project_type ON Project(projectType);
+CREATE INDEX idx_comment_project ON Comment(projectId);
+CREATE INDEX idx_comment_author ON Comment(author);
 ```
 
-## API Endpoints
+### 4. Configuration File
 
-### 1. Get Comments
+Create a `Config.toml` file in the backend directory with the following structure:
 
-- **GET** `/api/projects/comments?projectId={projectId}`
-- **Response**: List of all comments for a project
-- **Features**: Returns comments with replies, timestamps, and like counts
+```toml
+[backend.agent]
+chatGPTApiKey = "your_openai_api_key_here"
 
-### 2. Add Comment/Reply
+[databaseConfig]
+host = "localhost"
+port = 5432
+username = "your_postgres_username"
+password = "your_postgres_password"
+database = "your_database_name"
+```
 
-- **POST** `/api/projects/comments`
-- **Body**:
-  ```json
-  {
-    "commentId": "unique_id",
-    "projectId": "project_id",
-    "author": "user@example.com",
-    "content": "Comment text",
-    "parentCommentId": "optional_parent_id",
-    "likesCount": 0
-  }
-  ```
-- **Response**: Created comment with timestamp
+#### Configuration Details
 
-### 3. Edit Comment/Reply
+- **OpenAI API Key**: Get from [OpenAI Platform](https://platform.openai.com/api-keys)
+- **Database**: Use the database name you created (e.g., `oneblok_db`)
+- **Host**: Usually `localhost` for local development
+- **Port**: Default PostgreSQL port is `5432`
 
-- **PUT** `/api/projects/comments/{commentId}`
-- **Body**:
-  ```json
-  {
-    "content": "Updated comment text",
-    "author": "user@example.com"
-  }
-  ```
-- **Response**: Updated comment details
-- **Security**: Only the original author can edit their comment
-- **Features**: Updates content while preserving other metadata
+## Running the Backend
 
-### 4. Toggle Comment Like/Unlike
+### 1. Build the Project
 
-- **PUT** `/api/projects/comments/{commentId}/like`
-- **Body**: `{ "userEmail": "user@example.com" }`
-- **Response**:
-  ```json
-  {
-    "message": "Comment liked/unliked successfully",
-    "action": "liked" | "unliked",
-    "likesCount": "increased" | "decreased"
-  }
-  ```
-- **Behavior**:
-  - If user hasn't liked: adds like and increments count
-  - If user already liked: removes like and decrements count
+```bash
+# Navigate to backend directory
+cd backend
 
-### 5. Check Comment Like Status
+# Build the project
+bal build
+```
 
-- **GET** `/api/projects/comments/{commentId}/liked?userEmail={userEmail}`
-- **Response**: `{ "hasLiked": true/false }`
+### 2. Start the Service
 
-## Frontend Features
+```bash
+# Run the service
+bal run
 
-The frontend components now:
+# The API will be available at http://localhost:8080
+```
 
-- Show filled heart icons for liked comments
-- Show empty heart icons for unliked comments
-- Update like counts in real-time without page refresh
-- Display appropriate toast messages for like/unlike actions
-- Maintain like state across comment replies
-- **Allow users to edit their own comments and replies**
-- **Show edit buttons only for comments authored by the current user**
-- **Provide inline editing with save/cancel options**
-- **Update comment content immediately in the UI after editing**
+### 3. Verify Installation
 
-## Edit Functionality
+```bash
+# Test backend health
+curl http://localhost:8080/
+# Should return: "Project Management API is running!"
 
-### User Experience
+# Test API root
+curl http://localhost:8080/api/projects
+# Should return: "Welcome to Project Management API!"
+```
 
-- Edit buttons appear only for comments/replies authored by the current user
-- Clicking edit transforms the comment content into an editable textarea
-- Users can modify the text and save changes or cancel the edit
-- The UI updates immediately to reflect changes
-- Toast notifications confirm successful edits
+## Troubleshooting
 
-### Security
+### Common Issues
 
-- Backend validates that only the original author can edit a comment
-- Frontend shows edit options only for user's own content
-- Edit requests include author verification
+#### Database Connection Failed
 
-### Technical Implementation
+- Verify PostgreSQL is running
+- Check database credentials in `Config.toml`
+- Ensure database exists and tables are created
 
-- Uses optimistic UI updates for immediate feedback
-- Maintains edit state separately from comment display state
-- Handles both top-level comments and nested replies
-- Preserves all other comment metadata during edits
+#### Port Already in Use
+
+- Change port in `main.bal` if 8080 is occupied
+- Update CORS configuration accordingly
+
+#### Build Errors
+
+- Ensure Ballerina version is 2201.12.7+
+- Check all dependencies are properly installed
+- Verify `Config.toml` is properly formatted
+
+### Debug Mode
+
+```bash
+# Run with debug logging
+bal run --debug
+```
+
+## Next Steps
+
+After successfully running the backend:
+
+1. **Frontend Setup**: Navigate to the `frontend/` directory and follow the setup instructions in `frontend/README.md`
+2. **Testing**: Use the frontend application to test the backend API endpoints
+3. **Development**: Make changes to the backend code and restart the service
+
+## Support
+
+If you encounter any issues, please contact: **virangaweerabandara@gmail.com**
