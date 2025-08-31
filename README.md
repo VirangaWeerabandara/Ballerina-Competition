@@ -31,7 +31,7 @@ OneBlock is a comprehensive full-stack API builder and simulation platform that 
 
 ### Database (PostgreSQL)
 
-- Stores all project data, user info, and API block layouts
+- Stores all project data, comments info, and API block layouts
 - Uses JSONB for efficient storage of complex flow configurations
 - Supports real-time data synchronization
 
