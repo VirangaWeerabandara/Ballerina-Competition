@@ -92,31 +92,31 @@ const ChatbotWidget: React.FC = () => {
         <MessageCircle className="h-6 w-6" />
       </Button>
 
-             {/* Chat Panel - Slides in from right */}
-       <div
-         className={cn(
-           "fixed z-40 transition-all duration-200 ease-out",
-           isOpen ? "translate-x-0" : "translate-x-full",
-           isMinimized
-             ? "bottom-6 right-6 w-16 h-16"
-             : "top-0 right-0 w-96 h-full"
-         )}
-       >
-         {/* Backdrop for better visual separation */}
-         {!isMinimized && (
-           <div className="absolute inset-0 bg-gradient-to-l from-black/5 to-transparent pointer-events-none transition-opacity duration-200" />
-         )}
+      {/* Chat Panel - Slides in from right */}
+      <div
+        className={cn(
+          "fixed z-40 transition-all duration-200 ease-out",
+          isOpen ? "translate-x-0" : "translate-x-full",
+          isMinimized
+            ? "bottom-6 right-6 w-16 h-16"
+            : "top-0 right-0 w-96 h-full"
+        )}
+      >
+        {/* Backdrop for better visual separation */}
+        {!isMinimized && (
+          <div className="absolute inset-0 bg-gradient-to-l from-black/5 to-transparent pointer-events-none transition-opacity duration-200" />
+        )}
 
-         {/* Main Chat Panel */}
-         <div
-           className={cn(
-             "relative bg-white/95 backdrop-blur-xl shadow-lg transition-opacity duration-200 ease-out",
-             "flex flex-col",
-             isMinimized
-               ? "w-16 h-16 rounded-full border-2 border-primary/20"
-               : "w-96 h-full border-l border-l-border/50"
-           )}
-         >
+        {/* Main Chat Panel */}
+        <div
+          className={cn(
+            "relative bg-white/95 backdrop-blur-xl shadow-lg transition-opacity duration-200 ease-out",
+            "flex flex-col",
+            isMinimized
+              ? "w-16 h-16 rounded-full border-2 border-primary/20"
+              : "w-96 h-full border-l border-l-border/50"
+          )}
+        >
           {/* Header - Only show when not minimized */}
           {!isMinimized && (
             <div className="flex items-center justify-between border-b border-border/50 p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 backdrop-blur-sm">
@@ -278,15 +278,15 @@ const ChatbotWidget: React.FC = () => {
             </>
           )}
 
-                     {/* Minimized State */}
-           {isMinimized && (
-             <div
-               className="w-full h-full rounded-full bg-primary/90 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity duration-150 shadow-md"
-               onClick={maximizeChat}
-             >
-               <MessageCircle className="h-7 w-7 text-primary-foreground" />
-             </div>
-           )}
+          {/* Minimized State */}
+          {isMinimized && (
+            <div
+              className="w-full h-full rounded-full bg-primary/90 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity duration-150 shadow-md"
+              onClick={maximizeChat}
+            >
+              <MessageCircle className="h-7 w-7 text-primary-foreground" />
+            </div>
+          )}
         </div>
       </div>
     </>
