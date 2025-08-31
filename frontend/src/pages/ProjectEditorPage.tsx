@@ -182,6 +182,7 @@ const ProjectEditorPage = () => {
               initialEdges={project.edges}
               onBack={handleBack}
               onSave={handleSave}
+              projectId={project.id}
             />
           </div>
 
