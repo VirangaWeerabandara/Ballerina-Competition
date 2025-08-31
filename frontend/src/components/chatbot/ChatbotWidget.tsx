@@ -89,7 +89,7 @@ const ChatbotWidget: React.FC = () => {
         )}
         size="icon"
       >
-        <MessageCircle className="h-6 w-6" />
+        <Bot className="h-9 w-9 !size-9" />
       </Button>
 
       {/* Chat Panel - Slides in from right */}
@@ -284,7 +284,7 @@ const ChatbotWidget: React.FC = () => {
               className="w-full h-full rounded-full bg-primary/90 flex items-center justify-center cursor-pointer hover:opacity-90 transition-opacity duration-150 shadow-md"
               onClick={maximizeChat}
             >
-              <MessageCircle className="h-7 w-7 text-primary-foreground" />
+              <Bot className="h-9 w-9 !size-9 text-primary-foreground" />
             </div>
           )}
         </div>
