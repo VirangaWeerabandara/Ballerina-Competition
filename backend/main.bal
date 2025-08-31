@@ -477,7 +477,7 @@ service /api/projects on httpListener {
                 "content": content,
                 "parentCommentId": parentCommentId,
                 "likesCount": likesCount,
-                "createdAt": "now"
+                "createdAt": currentTime
             };
 
             check caller->respond({
@@ -490,23 +490,161 @@ service /api/projects on httpListener {
         }
     }
 
-    // 3. Like a comment
+    // 3. Like/Unlike a comment (toggle functionality)
     resource function put comments/[string commentId]/like(http:Caller caller, http:Request req) returns error? {
-        // Increment likes count for the comment
-        sql:ParameterizedQuery query = `UPDATE Comment SET likesCount = likesCount + 1 WHERE commentId = ${commentId}`;
+        json payload;
+        var payloadResult = req.getJsonPayload();
+        
+        if payloadResult is json {
+            payload = payloadResult;
+        } else {
+            check caller->respond({"error": "Invalid JSON payload"});
+            return;
+        }
 
-        var result = self.dbClient->execute(query);
+        string userEmail = (check payload.userEmail).toString();
+        
+        // Check if user already liked this comment
+        sql:ParameterizedQuery checkQuery = `SELECT 1 FROM CommentLike WHERE commentId = ${commentId} AND userEmail = ${userEmail}`;
+        stream<record {}, sql:Error?> checkResult = self.dbClient->query(checkQuery);
+        
+        var hasLiked = checkResult.next();
+        check checkResult.close();
+        
+        if hasLiked is record {|record {} value;|} {
+            // User already liked, so unlike
+            sql:ParameterizedQuery unlikeQuery = `DELETE FROM CommentLike WHERE commentId = ${commentId} AND userEmail = ${userEmail}`;
+            var unlikeResult = self.dbClient->execute(unlikeQuery);
+            
+            if unlikeResult is sql:ExecutionResult {
+                // Decrement likes count
+                sql:ParameterizedQuery updateQuery = `UPDATE Comment SET likesCount = GREATEST(likesCount - 1, 0) WHERE commentId = ${commentId}`;
+                var updateResult = self.dbClient->execute(updateQuery);
+                
+                if updateResult is sql:ExecutionResult {
+                    log:printInfo("Comment unliked successfully");
+                    check caller->respond({
+                        "message": "Comment unliked successfully",
+                        "action": "unliked",
+                        "likesCount": "decreased"
+                    });
+                } else {
+                    log:printError("Error updating comment likes count", updateResult);
+                    check caller->respond({"error": "Failed to update comment likes count"});
+                }
+            } else {
+                log:printError("Error unliking comment", unlikeResult);
+                check caller->respond({"error": "Failed to unlike comment"});
+            }
+        } else {
+            // User hasn't liked, so like
+            string currentTime = time:utcNow().toString();
+            sql:ParameterizedQuery likeQuery = `INSERT INTO CommentLike (commentId, userEmail, createdAt) VALUES (${commentId}, ${userEmail}, ${currentTime})`;
+            var likeResult = self.dbClient->execute(likeQuery);
+            
+            if likeResult is sql:ExecutionResult {
+                // Increment likes count
+                sql:ParameterizedQuery updateQuery = `UPDATE Comment SET likesCount = likesCount + 1 WHERE commentId = ${commentId}`;
+                var updateResult = self.dbClient->execute(updateQuery);
+                
+                if updateResult is sql:ExecutionResult {
+                    log:printInfo("Comment liked successfully");
+                    check caller->respond({
+                        "message": "Comment liked successfully",
+                        "action": "liked",
+                        "likesCount": "increased"
+                    });
+                } else {
+                    log:printError("Error updating comment likes count", updateResult);
+                    check caller->respond({"error": "Failed to update comment likes count"});
+                }
+            } else {
+                log:printError("Error liking comment", likeResult);
+                check caller->respond({"error": "Failed to like comment"});
+            }
+        }
+    }
+
+    // 4. Check if user has liked a comment
+    resource function get comments/[string commentId]/liked(http:Caller caller, http:Request req) returns error? {
+        string? userEmail = req.getQueryParamValue("userEmail");
+        
+        if userEmail is () {
+            check caller->respond({"error": "User email parameter is required"});
+            return;
+        }
+
+        sql:ParameterizedQuery query = `SELECT 1 FROM CommentLike WHERE commentId = ${commentId} AND userEmail = ${userEmail}`;
+        stream<record {}, sql:Error?> resultStream = self.dbClient->query(query);
+        
+        var result = resultStream.next();
+        check resultStream.close();
+        
+        boolean hasLiked = result is record {|record {} value;|};
+        
+        check caller->respond({
+            "hasLiked": hasLiked
+        });
+    }
+
+    // 5. Edit an existing comment or reply
+    resource function put comments/[string commentId](http:Caller caller, http:Request req) returns error? {
+        json payload;
+        var payloadResult = req.getJsonPayload();
+        
+        if payloadResult is json {
+            payload = payloadResult;
+        } else {
+            check caller->respond({"error": "Invalid JSON payload"});
+            return;
+        }
+
+        // Extract comment details from payload
+        string content = (check payload.content).toString();
+        string author = (check payload.author).toString();
+
+        // Validate required fields
+        if content == "" || author == "" {
+            check caller->respond({"error": "Missing required fields: content, author"});
+            return;
+        }
+
+        // Check if the comment exists and belongs to the author
+        sql:ParameterizedQuery checkQuery = `SELECT commentId FROM Comment WHERE commentId = ${commentId} AND author = ${author}`;
+        stream<record {}, sql:Error?> checkResult = self.dbClient->query(checkQuery);
+        
+        var commentExists = checkResult.next();
+        check checkResult.close();
+        
+        if commentExists is () {
+            check caller->respond({"error": "Comment not found or you don't have permission to edit it"});
+            return;
+        }
+
+        // Update comment in database
+        sql:ParameterizedQuery updateQuery = `UPDATE Comment SET content = ${content} WHERE commentId = ${commentId}`;
+        var result = self.dbClient->execute(updateQuery);
 
         if result is sql:ExecutionResult {
             if result.affectedRowCount > 0 {
-                log:printInfo("Comment liked successfully");
-                check caller->respond({"message": "Comment liked successfully"});
+                log:printInfo("Comment updated successfully");
+                
+                json updatedComment = {
+                    "commentId": commentId,
+                    "content": content,
+                    "author": author
+                };
+
+                check caller->respond({
+                    "message": "Comment updated successfully",
+                    "comment": updatedComment
+                });
             } else {
                 check caller->respond({"error": "Comment not found"});
             }
         } else if result is error {
-            log:printError("Error occurred while liking comment", result);
-            check caller->respond({"error": "Failed to like comment"});
+            log:printError("Error occurred while updating comment", result);
+            check caller->respond({"error": "Failed to update comment"});
         }
     }
 

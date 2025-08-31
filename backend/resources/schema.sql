@@ -18,3 +18,10 @@ CREATE TABLE Comment (
     likesCount INTEGER DEFAULT 0,
     createdAt VARCHAR(255) NOT NULL
 );
+
+CREATE TABLE CommentLike (
+    commentId VARCHAR(255) NOT NULL REFERENCES Comment(commentId) ON DELETE CASCADE,
+    userEmail VARCHAR(255) NOT NULL,
+    createdAt VARCHAR(255) NOT NULL,
+    PRIMARY KEY (commentId, userEmail)
+);
