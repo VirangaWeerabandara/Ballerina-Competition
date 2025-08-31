@@ -8,6 +8,7 @@ import {
 } from "@asgardeo/react";
 import { Card, CardContent } from "@/components/ui/card";
 import FlowBuilder from "@/components/flow/FlowBuilder";
+import CommentSection from "@/components/comments/CommentSection";
 
 import exampleProjectData, { ProjectData } from "@/data/exampleProjectData";
 
@@ -172,14 +173,30 @@ const ProjectEditorPage = () => {
       </SignedOut>
 
       <SignedIn>
-        <FlowBuilder
-          projectName={project.name}
-          projectType={project.type}
-          initialNodes={project.nodes}
-          initialEdges={project.edges}
-          onBack={handleBack}
-          onSave={handleSave}
-        />
+        <div className="flex h-screen">
+          {/* Flow Builder Section */}
+          <div className="flex-1">
+            <FlowBuilder
+              projectName={project.name}
+              projectType={project.type}
+              initialNodes={project.nodes}
+              initialEdges={project.edges}
+              onBack={handleBack}
+              onSave={handleSave}
+            />
+          </div>
+          
+          {/* Comment Section */}
+          <div className="w-80 border-l border-gray-200 bg-white">
+            <div className="h-full overflow-y-auto p-4">
+              <CommentSection
+                projectId={project.id}
+                isOwner={true} // Assuming the current user is the owner for now
+                currentUser={user?.email || "Anonymous"}
+              />
+            </div>
+          </div>
+        </div>
       </SignedIn>
     </>
   );
